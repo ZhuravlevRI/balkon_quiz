@@ -6,7 +6,12 @@ import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { routeTree } from './routeTree.gen'
 
 // Create a new router instance
-const router = createRouter({ routeTree })
+const router = createRouter({
+    routeTree,
+
+    scrollRestoration: true,
+    scrollRestorationBehavior: 'instant',
+})
 
 // Render the app
 const rootElement = document.getElementById('root')

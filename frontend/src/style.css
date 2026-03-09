@@ -1,1 +1,6 @@
 @import "tailwindcss";
+@plugin "daisyui";
+
+* {
+    font-family: "Roboto", sans-serif;
+}

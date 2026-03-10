@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-export const Route = createFileRoute('/quizzes/')({
+export const Route = createFileRoute('/quiz/')({
   component: RouteComponent,
 })
 
@@ -15,7 +15,11 @@ function RouteComponent() {
         <br/>
         <button className="ms-2 btn btn-primary btn-sm">Создать новый квиз</button>
         <div className="mt-4 flex gap-5 flex-wrap">
-            <QuizCard />
+            <QuizCard data={{
+                id: 1,
+                title: "Test quiz",
+                description: "Quiz about testing and dummy text"
+            }}/>
         </div>
     </div>
 }

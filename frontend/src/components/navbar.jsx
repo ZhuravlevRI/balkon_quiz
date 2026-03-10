@@ -16,7 +16,7 @@ export function Navbar() {
                     <ul
                         tabIndex="-1"
                         className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
-                        <li><Link to="/quizzes">Квизы</Link></li>
+                        <li><Link to="/quiz">Квизы</Link></li>
                         <li><Link to="/session">Управление сессией</Link></li>
                     </ul>
                 </div>
@@ -26,7 +26,7 @@ export function Navbar() {
             {!matchAuth && (
             <div className="navbar-center hidden lg:flex">
                 <ul className="menu menu-horizontal px-1">
-                    <li><Link to="/quizzes" className="[&.active]:menu-active">Квизы</Link></li>
+                    <li><Link to="/quiz" className="[&.active]:menu-active">Квизы</Link></li>
                     <li><Link to="/session" className="[&.active]:menu-active">Управление сессией</Link></li>
                 </ul>
             </div>

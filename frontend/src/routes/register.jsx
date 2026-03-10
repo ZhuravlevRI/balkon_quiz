@@ -5,11 +5,11 @@ import { Link } from '@tanstack/react-router'
 import { useForm } from "react-hook-form"
 
 
-export const Route = createFileRoute('/login')({
-    component: Login,
+export const Route = createFileRoute('/register')({
+    component: Register,
 })
 
-function Login() {
+function Register() {
     const {
         register,
         formState: { errors },
@@ -34,6 +34,14 @@ function Login() {
                     })} />
                 <p className="text-error">{errors.name?.message}</p>
 
+                <label className="label">Почта</label>
+                <input required type="email" className={"input " + (errors.email && "input-error")} placeholder="Почта"
+                    {...register("email", {
+                        required: "Почта обязательна",
+                        pattern: {value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, message: "Неправильный формат почты"},
+                    })} />
+                <p className="text-error">{errors.email?.message}</p>
+
                 <label className="label">Пароль</label>
                 <input required type="password" className={"input " + (errors.password && "input-error")} placeholder="Пароль" 
                     {...register("password", {
@@ -43,9 +51,9 @@ function Login() {
                     })} />
                 <p className="text-error">{errors.password?.message}</p>
 
-                <button type="submit" className="btn btn-neutral mt-4">Войти</button>
+                <button type="submit" className="btn btn-neutral mt-4">Зарегистрироваться</button>
                 <div className="pt-2">
-                    Нет аккаунта? <Link to="/register" className="link link-hover link-primary">Зарегистрироваться</Link>
+                    Уже есть аккаунт? <Link to="/login" className="link link-hover link-primary">Войти</Link>
                 </div>
             </form>
         </div>

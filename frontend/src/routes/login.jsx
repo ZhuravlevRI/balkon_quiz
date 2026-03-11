@@ -45,7 +45,7 @@ function Login() {
 
                 <button type="submit" className="btn btn-neutral mt-4">Войти</button>
                 <div className="pt-2">
-                    Нет аккаунта? <Link to="/register" className="link link-hover link-primary">Зарегистрироваться</Link>
+                    Нет аккаунта? <Link to="/register" className="link link-hover link-info">Зарегистрироваться</Link>
                 </div>
             </form>
         </div>

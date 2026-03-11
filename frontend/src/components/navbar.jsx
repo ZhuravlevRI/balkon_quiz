@@ -6,7 +6,7 @@ export function Navbar() {
     const matchAuth = matchRoute({ to: '/login' }) || matchRoute({ to: '/register' })
 
     return (
-        <div className="fixed navbar bg-base-100 shadow-sm">
+        <div className="absolute navbar bg-base-100 shadow-sm z-50">
             <div className="navbar-start">
                 {!matchAuth && (
                 <div className="dropdown">

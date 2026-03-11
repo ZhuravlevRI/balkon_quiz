@@ -53,7 +53,7 @@ function Register() {
 
                 <button type="submit" className="btn btn-neutral mt-4">Зарегистрироваться</button>
                 <div className="pt-2">
-                    Уже есть аккаунт? <Link to="/login" className="link link-hover link-primary">Войти</Link>
+                    Уже есть аккаунт? <Link to="/login" className="link link-hover link-info">Войти</Link>
                 </div>
             </form>
         </div>

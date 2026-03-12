@@ -12,11 +12,11 @@ function RouteComponent() {
         id: 1,
         title: "Тестовый квиз",
         description: "Квиз для тестирования работоспособности приложения",
-        questions: [
-
-        ],
+        questions: [],
     }
+    // TODO: add id to questions
     const [data, setData] = useState(tempData)
+    const [idCount, setIdCount] = useState(tempData.questions.length)
 
     function setQuestionData(index, questionData) {
         setData({
@@ -35,7 +35,7 @@ function RouteComponent() {
             ...data,
             questions: [
                 ...data.questions.slice(0, index),
-                ...data.questions.slice(index),
+                ...data.questions.slice(index+1),
             ]
         });
     }
@@ -52,7 +52,9 @@ function RouteComponent() {
     }
 
     function emptyQuestion() {
+        setIdCount(idCount+1);
         return {
+            id: idCount,
             title: "",
             image: undefined,
             answers: [
@@ -75,18 +77,30 @@ function RouteComponent() {
         {/* </div> */}
         <div className="mx-auto max-w-3xl px-3 flex flex-col gap">
             <div className="card bg-base-200 card-border border-base-300 card-sm p-5 gap-1">
-                <input type="text" placeholder="Название квиза" defaultValue={data.title} className="input text-2xl w-full" />
-                <textarea type="text" placeholder="Описание" defaultValue={data.description} className="w-full textarea text-xl" />
+                <input type="text" placeholder="Название квиза" className="input text-2xl w-full" 
+                    value={data.title} onChange={e => setData({
+                        ...data,
+                        title: e.target.value
+                    })}
+                />
+                <textarea type="text" placeholder="Описание" className="w-full textarea text-xl"
+                    value={data.description} onChange={e => setData({
+                        ...data,
+                        title: e.target.value
+                    })}
+                />
                 {/* <div className="card-body"> */}
                 {/* </div> */}
             </div>
             {data.questions.map((question, i) => (
-                <>
-                    <button className="m-2 opacity-0 hover:opacity-100 divider text-xl">+</button>
-                    <Question key={i} index={i} data={question} />
-                    {/* {(i!=data.questions.length-1) && ( */}
-                    {/* )} */}
-                </>
+                    <Question
+                        key={question.id}
+                        index={i}
+                        data={question} 
+                        setQuestionData={setQuestionData}
+                        removeQuestion={removeQuestion}
+                        insertQuestion={() => insertQuestion(i, emptyQuestion())}
+                    />
             ))}
             <div className="flex justify-center">
                 <button className="btn btn-primary rounded-full p-4 mt-4"

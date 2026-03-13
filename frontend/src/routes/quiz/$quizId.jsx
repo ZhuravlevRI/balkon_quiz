@@ -22,6 +22,10 @@ import {
     useSortable,
     verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import {
+    restrictToVerticalAxis,
+    restrictToParentElement
+} from '@dnd-kit/modifiers';
 import { CSS } from "@dnd-kit/utilities";
 
 function RouteComponent() {
@@ -133,32 +137,27 @@ function RouteComponent() {
                 {/* </div> */}
             </div>
 
-
-
-
-
-            <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-            >
-                <SortableContext items={data.questions} strategy={verticalListSortingStrategy}>
-                    {data.questions.map((question, i) => (
-                        <Question
-                            key={question.id}
-                            index={i}
-                            data={question} 
-                            setQuestionData={setQuestionData}
-                            removeQuestion={removeQuestion}
-                            insertQuestion={() => insertQuestion(i, emptyQuestion())}
-                        />
-                    ))}
-                </SortableContext>
-            </DndContext>
-
-
-
-
+            <div>
+                <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                    modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+                >
+                    <SortableContext items={data.questions} strategy={verticalListSortingStrategy}>
+                        {data.questions.map((question, i) => (
+                            <Question
+                                key={question.id}
+                                index={i}
+                                data={question} 
+                                setQuestionData={setQuestionData}
+                                removeQuestion={removeQuestion}
+                                insertQuestion={() => insertQuestion(i, emptyQuestion())}
+                            />
+                        ))}
+                    </SortableContext>
+                </DndContext>
+            </div>
 
             <div className="flex justify-center">
                 <button className="btn btn-primary rounded-full p-4 mt-4"

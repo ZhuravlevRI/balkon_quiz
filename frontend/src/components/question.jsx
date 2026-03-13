@@ -33,6 +33,7 @@ export function Question({index, data, setQuestionData, removeQuestion, insertQu
         setActivatorNodeRef,
         transform,
         transition,
+        isDragging
     } = useSortable({
         id: data.id,
         animateLayoutChanges: () => false,
@@ -45,10 +46,11 @@ export function Question({index, data, setQuestionData, removeQuestion, insertQu
     return (
         <div
             ref={setNodeRef}
+            className={isDragging ? "z-999 relative" : ""}
             style={style}
             {...attributes}
         >
-            <button className="w-full my-1 py-3 opacity-0 hover:opacity-100 divider text-xl" onClick={insertQuestion}>+</button>
+            <button className={"w-full my-1 py-3 opacity-0 divider text-xl " + (isDragging ? "": "hover:opacity-100")} onClick={insertQuestion}>+</button>
             <div className="card bg-base-200 card-border border-base-300 card-sm p-5 pe-2">
                 <div className="flex">
                     <div className="w-full">
@@ -96,7 +98,7 @@ export function Question({index, data, setQuestionData, removeQuestion, insertQu
                         </div>
                     </div>
                     {/* <div className="drawer"></div> */}
-                    <div className="flex flex-col justify-center hover:bg-base-300 rounded"
+                    <div className={"flex flex-col justify-center hover:bg-base-300 rounded touch-none " + (isDragging ? "bg-base-300": "")}
                         {...listeners}
                         node={setActivatorNodeRef}
                     >

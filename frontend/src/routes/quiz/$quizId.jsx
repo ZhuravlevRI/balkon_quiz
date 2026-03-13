@@ -7,6 +7,23 @@ export const Route = createFileRoute('/quiz/$quizId')({
   component: RouteComponent,
 })
 
+import {
+    DndContext,
+    useSensors,
+    useSensor,
+    PointerSensor,
+    KeyboardSensor,
+    closestCenter,
+} from "@dnd-kit/core";
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    useSortable,
+    verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
 function RouteComponent() {
     const tempData = {
         id: 1,
@@ -66,6 +83,29 @@ function RouteComponent() {
         }
     }
 
+
+    // dnd bullshit
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
+    function handleDragEnd(event) {
+        const { active, over } = event;
+        if (active?.id !== over?.id) {
+            const activeIndex = data.questions.findIndex((item) => item.id === active?.id);
+            const overIndex = data.questions.findIndex((item) => item.id === over?.id);
+            const newQuestions = [...data.questions];
+            newQuestions[activeIndex] = newQuestions.splice(overIndex, 1, newQuestions[activeIndex])[0];
+            setData({
+                    ...data,
+                    questions: newQuestions
+            });
+        }
+    }
+
     return <div>
         <br/>
         <br/>
@@ -92,16 +132,34 @@ function RouteComponent() {
                 {/* <div className="card-body"> */}
                 {/* </div> */}
             </div>
-            {data.questions.map((question, i) => (
-                    <Question
-                        key={question.id}
-                        index={i}
-                        data={question} 
-                        setQuestionData={setQuestionData}
-                        removeQuestion={removeQuestion}
-                        insertQuestion={() => insertQuestion(i, emptyQuestion())}
-                    />
-            ))}
+
+
+
+
+
+            <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+            >
+                <SortableContext items={data.questions} strategy={verticalListSortingStrategy}>
+                    {data.questions.map((question, i) => (
+                        <Question
+                            key={question.id}
+                            index={i}
+                            data={question} 
+                            setQuestionData={setQuestionData}
+                            removeQuestion={removeQuestion}
+                            insertQuestion={() => insertQuestion(i, emptyQuestion())}
+                        />
+                    ))}
+                </SortableContext>
+            </DndContext>
+
+
+
+
+
             <div className="flex justify-center">
                 <button className="btn btn-primary rounded-full p-4 mt-4"
                     onClick={() => {

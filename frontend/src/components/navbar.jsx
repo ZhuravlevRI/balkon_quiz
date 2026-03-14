@@ -25,7 +25,7 @@ export function Navbar() {
             </div>
             {!matchAuth && (
             <div className="navbar-center hidden lg:flex">
-                <ul className="menu menu-horizontal px-1">
+                <ul className="menu menu-horizontal px-1 gap-1">
                     <li><Link to="/quiz" className="[&.active]:menu-active">Квизы</Link></li>
                     <li><Link to="/session" className="[&.active]:menu-active">Управление сессией</Link></li>
                 </ul>

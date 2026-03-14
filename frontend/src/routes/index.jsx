@@ -7,7 +7,7 @@ export const Route = createFileRoute('/')({
 
 function Index() {
     const [roomCode, setRoomCode] = useState("")
-    const [nick, setNick] = useState("")
+    const [name, setName] = useState("")
     return (
         <div>
             <div className="flex items-center justify-center text-center h-dvh">
@@ -24,10 +24,10 @@ function Index() {
             </div>
             <dialog id="modal" className="modal">
                 <div className="modal-box">
-                    <h3 className="font-bold text-lg">Введите ник</h3>
+                    <h3 className="font-bold text-lg">Введите имя</h3>
                     <div className="card-body">
-                        <input type="text" placeholder="Ник" className="input text-lg"
-                            value={nick} onChange={e => setNick(e.target.value)}
+                        <input type="text" placeholder="Имя" className="input text-lg"
+                            value={name} onChange={e => setName(e.target.value)}
                         />
                         <div className="pt-2">
                             <button className="btn btn-primary"

@@ -11,14 +11,19 @@ function RouteComponent() {
         <br/>
         <br/>
         <br/>
-        <h1 className="text-xl">Ваши квизы</h1>
-        <br/>
-        <button className="ms-2 btn btn-primary btn-sm">Создать новый квиз</button>
-        <div className="mt-4 flex gap-5 flex-wrap">
+        <h1 className="text-3xl">Ваши квизы</h1>
+        <div className="divider"></div>
+        <button className="ms-2 btn btn-primary">Создать новый квиз</button>
+        <div className="mt-6 flex gap-5 flex-wrap">
             <QuizCard data={{
                 id: 1,
-                title: "Test quiz",
-                description: "Quiz about testing and dummy text"
+                title: "Тестовый квиз",
+                description: "Квиз для тесты вебсайта"
+            }}/>
+            <QuizCard data={{
+                id: 1,
+                title: "МАИ квиз",
+                description: "Квиз для маёвцов про наш любимый институт"
             }}/>
         </div>
     </div>

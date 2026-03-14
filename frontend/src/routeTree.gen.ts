@@ -9,12 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SessionRouteImport } from './routes/session'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as QuizIndexRouteImport } from './routes/quiz/index'
 import { Route as QuizQuizIdRouteImport } from './routes/quiz/$quizId'
 
+const SessionRoute = SessionRouteImport.update({
+  id: '/session',
+  path: '/session',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
@@ -45,6 +51,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/session': typeof SessionRoute
   '/quiz/$quizId': typeof QuizQuizIdRoute
   '/quiz/': typeof QuizIndexRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/session': typeof SessionRoute
   '/quiz/$quizId': typeof QuizQuizIdRoute
   '/quiz': typeof QuizIndexRoute
 }
@@ -60,27 +68,49 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/session': typeof SessionRoute
   '/quiz/$quizId': typeof QuizQuizIdRoute
   '/quiz/': typeof QuizIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/register' | '/quiz/$quizId' | '/quiz/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/register'
+    | '/session'
+    | '/quiz/$quizId'
+    | '/quiz/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/register' | '/quiz/$quizId' | '/quiz'
-  id: '__root__' | '/' | '/login' | '/register' | '/quiz/$quizId' | '/quiz/'
+  to: '/' | '/login' | '/register' | '/session' | '/quiz/$quizId' | '/quiz'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/register'
+    | '/session'
+    | '/quiz/$quizId'
+    | '/quiz/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
+  SessionRoute: typeof SessionRoute
   QuizQuizIdRoute: typeof QuizQuizIdRoute
   QuizIndexRoute: typeof QuizIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/session': {
+      id: '/session'
+      path: '/session'
+      fullPath: '/session'
+      preLoaderRoute: typeof SessionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/register': {
       id: '/register'
       path: '/register'
@@ -123,6 +153,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
+  SessionRoute: SessionRoute,
   QuizQuizIdRoute: QuizQuizIdRoute,
   QuizIndexRoute: QuizIndexRoute,
 }

@@ -1,20 +1,23 @@
 import { Link } from '@tanstack/react-router'
 
-export function QuizCard({ data, isSelecting, current, setQuiz }) {
+export function QuizCard({ data, isSelecting, current, setQuiz, isDisplay }) {
     return (
-        <div className="card card-sm bg-base-200 border-base-300 rounded-box w-xs border p-4">
+        <div className={"card card-sm bg-base-200 border-base-300 rounded-box border p-4 " + (isDisplay ? "w-full h-100" : "w-md")}>
             <div className="border-base-300 border-b border-dashed flex items-center justify-between pb-2">
+                <div className="badge p-4 me-3">{data.questionCount}</div>
                 { isSelecting ? 
                     (
                         <>
-                            <a className="link link-hover"
+                            <a className={"link link-hover " + (isDisplay ? "text-3xl w-full" : "")}
                                 onClick={setQuiz}
                             >{data.title}</a>
-                            <button className={"btn " + (current ? "btn-info" : "btn-neutral")}
-                                onClick={setQuiz}
-                            >
-                                {current ? "Выбран" : "Выбрать"}
-                            </button>
+                            { (!isDisplay) && (
+                                <button className={"btn " + (current ? "btn-info" : "btn-neutral")}
+                                    onClick={setQuiz}
+                                >
+                                    {current ? "Выбран" : "Выбрать"}
+                                </button>
+                            )}
                         </>
                     ) : (
                         <>
@@ -32,7 +35,7 @@ export function QuizCard({ data, isSelecting, current, setQuiz }) {
                     )
                 }
             </div>
-            <div className="card-body pb-2">
+            <div className={"card-body pb-2 " + (isDisplay ? "text-xl" : "")}>
                 <p>{data.description}</p>
             </div>
         </div>

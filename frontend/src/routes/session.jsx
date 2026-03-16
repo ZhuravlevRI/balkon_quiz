@@ -24,17 +24,20 @@ function RouteComponent() {
     const quizData = [
         {
             id: 1,
-            title: "Тестовый квиз",
-            description: "Квиз для теста вебсайта"
+            title: "Тестовый квиз с длинным, интересным названием",
+            description: "Квиз для теста вебсайта",
+            questionCount: 10,
         },
         {
             id: 2,
             title: "МАИ квиз",
-            description: "Квиз для маёвцов про наш любимый институт"
+            description: "Квиз для маёвцов про наш любимый институт",
+            questionCount: 15,
         }
     ];
     const [isSelectingQuiz, setIsSelectingQuiz] = useState(false);
     const [selectedQuiz, setSelectedQuiz] = useState(undefined);
+    const quiz = quizData.find(x => x.id == selectedQuiz);
 
     return (
         <div>
@@ -63,15 +66,24 @@ function RouteComponent() {
                                 Запустить квиз
                             </button>
                         </div>
+                        {selectedQuiz && (
+                            <div className="flex justify-center mt-4 text-left">
+                                <QuizCard data={quiz} 
+                                    isSelecting={true}
+                                    current={true}
+                                    isDisplay={true}
+                                />
+                            </div>
+                        )}
                     </div>
                     <div className="w-full text-left">
                         { isSelectingQuiz ? (
-                            <div className="h-full border rounded-box border-base-200">
+                            <div className="h-full border rounded-box border-base-200 shadow-xl">
                                 <div>
                                     <h1 className="text-xl px-8 pt-8">Выберите квиз</h1>
                                 </div>
                                 <div className="divider mb-0"></div>
-                                <div className="flex flex-wrap gap-3 p-8 shadow-sm">
+                                <div className="flex flex-wrap gap-3 p-8">
                                     {quizData.map(e => (
                                         <QuizCard data={e} 
                                             isSelecting={true}

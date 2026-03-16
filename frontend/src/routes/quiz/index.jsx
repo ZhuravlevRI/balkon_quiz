@@ -11,12 +11,14 @@ function RouteComponent() {
         {
             id: 1,
             title: "Тестовый квиз",
-            description: "Квиз для теста вебсайта"
+            description: "Квиз для теста вебсайта",
+            questionCount: 10,
         },
         {
             id: 2,
             title: "МАИ квиз",
-            description: "Квиз для маёвцов про наш любимый институт"
+            description: "Квиз для маёвцов про наш любимый институт",
+            questionCount: 15,
         }
     ];
 

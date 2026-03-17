@@ -15,7 +15,7 @@ def parse_cors(v: Any) -> list[str] | str:
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file="../.env",
+        env_file=".env",
         env_ignore_empty=True,
         extra="ignore",
     )
@@ -33,7 +33,12 @@ class Settings(BaseSettings):
         BeforeValidator(parse_cors),
     ] = []
 
-    DATABASE_URL: str = "sqlite:///./quiz.db"
+    POSTGRES_SERVER: str = "db"
+    POSTGRES_PORT: int = 5432
+    POSTGRES_USER: str = "postgres"
+    POSTGRES_PASSWORD: str = "postgres"
+    POSTGRES_DB: str = "balkon_quiz"
+
     SQL_ECHO: bool = False
 
     @computed_field  # type: ignore[prop-decorator]
@@ -46,7 +51,10 @@ class Settings(BaseSettings):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
-        return self.DATABASE_URL
+        return (
+            f"postgresql+psycopg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
+            f"@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        )
 
 
 settings = Settings()

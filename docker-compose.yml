@@ -36,6 +36,16 @@ services:
     ports:
       - "8000:8000"
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    frontend:
+      restart: always
+      build:
+        context: frontend/
+        dockerfile: Dockerfile
+        args:
+          - VITE_API_URL=https://api.${DOMAIN?Variable not set}
+          - NODE_ENV=production
+      ports:
+        - "80:80"
 
 volumes:
   postgres_data:

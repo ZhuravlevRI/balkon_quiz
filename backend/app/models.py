@@ -10,13 +10,20 @@ def get_datetime_utc() -> datetime:
     return datetime.now(timezone.utc)
 
 
-class User(SQLModel, table=True):
+class UserBase(SQLModel):
+    username: str = Field(unique=True, index=True, max_length=50)
+    is_active: bool = True
+
+
+class UserCreate(UserBase):
+    password: str = Field(min_length=8, max_length=128)
+
+
+class User(UserBase, table=True):
     __tablename__ = "users"
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
-    username: str = Field(unique=True, index=True, max_length=50)
     hashed_password: str
-    is_active: bool = True
     created_at: datetime = Field(
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),
@@ -25,17 +32,24 @@ class User(SQLModel, table=True):
     quizzes_created: list["Quiz"] = Relationship(back_populates="created_by")
 
 
-class Quiz(SQLModel, table=True):
+class QuizBase(SQLModel):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+    title: str = Field(min_length=1, max_length=255)
+    description: str | None = Field(default=None, max_length=255)
+
+
+class QuizCreate(QuizBase):
+    pass
+
+
+class Quiz(QuizBase, table=True):
     __tablename__ = "quizzes"
 
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
-    title: str = Field(max_length=255, index=True)
-    description: str | None = Field(default=None)
     questions_json: list[dict[str, Any]] = Field(
         default_factory=list,
         sa_column=Column(JSON, nullable=False),
     )
-    is_published: bool = False
+
     created_at: datetime = Field(
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),

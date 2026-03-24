@@ -78,12 +78,8 @@ function RouteComponent() {
             id: idCount,
             title: "",
             image: undefined,
-            answers: [
-                { answer: "", correct: false },
-                { answer: "", correct: false },
-                { answer: "", correct: false },
-                { answer: "", correct: false },
-            ]
+            answers: ["", "", "", ""],
+            correct: 0
         }
     }
 
@@ -130,7 +126,7 @@ function RouteComponent() {
                 <textarea type="text" placeholder="Описание" className="w-full textarea text-xl"
                     value={data.description} onChange={e => setData({
                         ...data,
-                        title: e.target.value
+                        description: e.target.value
                     })}
                 />
                 {/* <div className="card-body"> */}

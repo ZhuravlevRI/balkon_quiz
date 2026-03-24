@@ -22,13 +22,15 @@ function RouteComponent() {
         }
     ];
 
+    const navigate = Route.useNavigate();
+
     return <div className="mx-12 p-3">
         <br/>
         <br/>
         <br/>
         <h1 className="text-3xl">Ваши квизы</h1>
         <div className="divider"></div>
-        <button className="ms-2 btn btn-primary">Создать новый квиз</button>
+        <button className="ms-2 btn btn-primary" onClick={() => navigate({ to: '/quiz/1' })}>Создать новый квиз</button>
         <div className="mt-6 flex gap-5 flex-wrap">
             {quizData.map(e => <QuizCard data={e}/>)}
         </div>

@@ -1,25 +1,15 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-function QuestionAnswer({index, data, setAnswer}) {
+function QuestionAnswer({index, answer, setAnswer, correct, setCorrect}) {
     return (
         <div className="flex justify-between items-center gap-2 p-1">
-            <input type="checkbox" className="checkbox bg-red-500 border-red-700 checked:bg-success checked:border-success" 
-                checked={data.correct} onChange={e => {
-                    setAnswer({
-                        ...data,
-                        correct: e.target.checked
-                    })}
-                }
+            <input type="checkbox" className="radio checkbox bg-red-500 border-red-700 checked:bg-success checked:border-success" 
+                checked={correct} onChange={setCorrect}
             />
-            <button className="badge bg-primary py-4">{index}</button>
+            <button className="badge bg-primary py-4">{index+1}</button>
             <input type="text" placeholder="Ответ" className="input text-lg w-full"
-                value={data.answer} onChange={e => {
-                    setAnswer({
-                        ...data,
-                        answer: e.target.value
-                    })}
-                }
+                value={answer} onChange={e => setAnswer(e.target.value)}
             />
         </div>
     )
@@ -78,7 +68,14 @@ export function Question({index, data, setQuestionData, removeQuestion, insertQu
                             <div>
                                 <div className="flex flex-col gap-1">
                                     {data.answers.map((answer, i) => (
-                                        <QuestionAnswer key={i} index={i+1} data={answer}
+                                        <QuestionAnswer key={i} index={i} answer={answer} correct={i==data.correct}
+                                            setCorrect={(correct) => setQuestionData(
+                                                index,
+                                                {
+                                                    ...data,
+                                                    correct: i
+                                                }
+                                            )}
                                             setAnswer={(answerData) => setQuestionData(
                                                 index,
                                                 {
@@ -100,8 +97,8 @@ export function Question({index, data, setQuestionData, removeQuestion, insertQu
                     {/* <div className="drawer"></div> */}
                     <div className={"flex flex-col justify-center hover:bg-base-300 rounded touch-none " + (isDragging ? "bg-base-300": "")}
                         {...listeners}
-                        node={setActivatorNodeRef}
                     >
+                        {/* node={setActivatorNodeRef} */}
                         <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" fill="currentColor" className="size-6" viewBox="0 0 16 16">
                             <path d="M7 2a1 1 0 1 1-2 0 1 1 0 0 1 2 0m3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0M7 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0m3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0M7 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0m3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0m-3 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0m3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0m-3 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0m3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
                         </svg>

@@ -1,1 +1,19 @@
 @import "tailwindcss";
+@plugin "daisyui" {
+    themes: dark --default;
+}
+@plugin "daisyui/theme" {
+    name: "dark";
+    default: true;
+    --color-base-content: oklch(98% .016 252.42);
+    --color-base-100: oklch(35% .016 252.42);
+    --color-base-200: oklch(45% .016 252.42);
+    --color-base-300: oklch(55% .016 252.42);
+    --color-neutral: oklch(30% .016 252.42);
+    --color-neutral-content: oklch(98% .016 252.42);
+    --input-color: oklch(98% .016 252.42);
+}
+
+* {
+    font-family: "Roboto", sans-serif;
+}

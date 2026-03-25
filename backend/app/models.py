@@ -19,6 +19,12 @@ class UserCreate(UserBase):
     password: str = Field(min_length=8, max_length=128)
 
 
+class UserRegister(SQLModel):
+    username: str = Field(max_length=50)
+    password: str = Field(min_length=8, max_length=128)
+    full_name: str | None = Field(default=None, max_length=255)
+
+
 class User(UserBase, table=True):
     __tablename__ = "users"
 
@@ -30,6 +36,11 @@ class User(UserBase, table=True):
     )
 
     quizzes_created: list["Quiz"] = Relationship(back_populates="created_by")
+
+
+class UserPublic(UserBase):
+    id: uuid.UUID
+    created_at: datetime | None = None
 
 
 class QuizBase(SQLModel):
@@ -62,3 +73,7 @@ class Quiz(QuizBase, table=True):
     )
 
     created_by: User | None = Relationship(back_populates="quizzes_created")
+
+
+class Message(SQLModel):
+    message: str

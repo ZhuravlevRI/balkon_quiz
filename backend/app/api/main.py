@@ -9,3 +9,4 @@ api_router.include_router(users.router)
 
 if settings.ENVIRONMENT == "local":
     pass
+

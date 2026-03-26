@@ -1,49 +1,81 @@
-from collections.abc import Generator
+from typing import Optional
 from typing import Annotated
 
-import jwt
-from fastapi import Depends, HTTPException, status
-from fastapi import Cookie
-from fastapi.security import OAuth2PasswordBearer
-from jwt.exceptions import InvalidTokenError
-from pydantic import ValidationError
+from fastapi import Depends, Request, HTTPException, status
+from fastapi.security.utils import get_authorization_scheme_param
+
 from sqlmodel import Session
 
-from app.core import security
+import jwt
+from jwt.exceptions import InvalidTokenError
+
+from app.core.db import get_session
+from app.crud import get_user_by_id
 from app.core.config import settings
-from app.core.db import engine
-from app.models import User
-
-reusable_oauth2 = OAuth2PasswordBearer(
-    tokenUrl=f"{settings.API_V1_STR}/login/access-token"
-)
+from app.models import UserPublic
 
 
-def get_db() -> Generator[Session, None, None]:
-    with Session(engine) as session:
-        yield session
+SessionDep = Annotated[Session, Depends(get_session)]
 
 
-SessionDep = Annotated[Session, Depends(get_db)]
-TokenDep = Annotated[str | None, Cookie()]
+async def get_token_from_cookie(request: Request) -> Optional[str]:
+    """
+    Get auth token from cookie
+    format:
+    access_token="Bearer {token}"
+    or
+    access_token="{token}"
+    """
+    cookie_value: str = request.cookies.get("access_token")
+    if not cookie_value:
+        return None
+
+    scheme, param = get_authorization_scheme_param(cookie_value)
+    if scheme.lower() == "bearer":
+        return param
+    return cookie_value
 
 
-def get_current_user(session: SessionDep, token: TokenDep) -> User:
+TokenDep = Annotated[Optional[str], Depends(get_token_from_cookie)]
+
+
+async def get_current_user(
+    *,
+    session: Session = Depends(get_session),
+    token: Optional[str] = Depends(get_token_from_cookie),
+) -> UserPublic:
+
+    cred_exc = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Not authenticated",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    if token is None:
+        raise cred_exc
+
     try:
         payload = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM]
         )
-    except (InvalidTokenError, ValidationError):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Could not validate credentials",
-        )
-    user = session.get(User, payload["sub"])
+        user_id: Optional[str] = payload.get("sub")
+        if user_id is None:
+            raise cred_exc
+    except InvalidTokenError:
+        raise cred_exc
+
+    user = get_user_by_id(session=session, user_id=user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    if not user.is_active:
-        raise HTTPException(status_code=400, detail="Inactive user")
-    return user
+        raise cred_exc
+
+    return UserPublic(
+        id=user.id,
+        username=user.username,
+        is_active=user.is_active,
+        created_at=user.created_at
+    )
 
 
-CurrentUser = Annotated[User, Depends(get_current_user)]
+CurrentUserDep = Annotated[UserPublic, Depends(get_current_user)]

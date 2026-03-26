@@ -22,7 +22,6 @@ class UserCreate(UserBase):
 class UserRegister(SQLModel):
     username: str = Field(max_length=50)
     password: str = Field(min_length=8, max_length=128)
-    full_name: str | None = Field(default=None, max_length=255)
 
 
 class User(UserBase, table=True):
@@ -77,3 +76,7 @@ class Quiz(QuizBase, table=True):
 
 class Message(SQLModel):
     message: str
+
+
+class Token(SQLModel):
+    access_token: str

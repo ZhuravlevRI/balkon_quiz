@@ -15,5 +15,4 @@ def get_session() -> Generator[Session, None, None]:
 
 
 def init_db() -> None:
-    import app.models
     SQLModel.metadata.create_all(engine)

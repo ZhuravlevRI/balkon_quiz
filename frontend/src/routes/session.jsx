@@ -4,9 +4,23 @@ import { createFileRoute } from '@tanstack/react-router'
 import { UserPanel } from '@/components/userPanel.jsx'
 import { QuizCard } from '@/components/quizCard.jsx'
 
+import { useAtom } from 'jotai'
+import { statusAtom } from '@/atoms.jsx'
+
 export const Route = createFileRoute('/session')({
   component: RouteComponent,
 })
+
+function Anwser({index, answer, pick, picked, correct}) {
+    return (
+        <button className={"flex items-center gap-2 p-3 md:w-48/100 w-full bg-base-200 rounded-box " + 
+            (picked ? "outline-3 " + (correct == undefined ? "" : correct==index ? "outline-success" : "outline-error") : "")}
+        onClick={pick}>
+            <div className={"badge py-4 " + (correct == undefined ? "bg-primary" : correct==index ? "bg-success" : "bg-error")}>{index+1}</div>
+            <p className="text-xl">{answer}</p>
+        </button>
+    )
+}
 
 function RouteComponent() {
     const users = [
@@ -39,72 +53,167 @@ function RouteComponent() {
     const [selectedQuiz, setSelectedQuiz] = useState(undefined);
     const quiz = quizData.find(x => x.id == selectedQuiz);
 
+    // const [status, setStatus] = useState("idle");
+    // const [status, setStatus] = useState("question");
+    const [status, setStatus] = useAtom(statusAtom);
+
+    const [question, setQuestion] = useState({
+        id: 1,
+        title: "Что это такое?",
+        image: undefined,
+        answers: [
+            "Незнаю",
+            "Я программист",
+            "Помогите",
+            "Какае-то там функция, вроде как",
+        ],
+        correct: undefined
+    });
+
+    const [pickedAnswer, setPickedAnswer] = useState(undefined);
+
+    function pickAnswer(index) {
+        setPickedAnswer(index)
+    }
+
     return (
         <div>
-            <div className="flex flex-col text-center h-dvh">
-                <div>
-                    <br/>
-                    <br/>
-                    <br/>
-                    <br/>
-                    <br/>
-                </div>
-                <div className="flex ms-30 me-10 justify-between gap-10 h-full mb-10">
-                    <div className="pe-20">
-                        <div className="flex">
-                            <h1 style={{"font-size": "11em"}}className="bg-base-200 px-6 rounded-box font-semibold">
-                                A3sE5
-                            </h1>
-                        </div>
+            {(status == "idle") ? (
+                <div className="flex flex-col text-center h-dvh">
+                    <div>
                         <br/>
-                        <div className="flex justify-center gap-5">
-                            <button className="btn btn-neutral"
-                            onClick={() => setIsSelectingQuiz(!isSelectingQuiz)}>
-                                Выбрать квиз
-                            </button>
-                            <button className="btn btn-primary" disabled={selectedQuiz == undefined}>
-                                Запустить квиз
-                            </button>
-                        </div>
-                        {selectedQuiz && (
-                            <div className="flex justify-center mt-4 text-left">
-                                <QuizCard data={quiz} 
-                                    isSelecting={true}
-                                    current={true}
-                                    isDisplay={true}
-                                />
-                            </div>
-                        )}
+                        <br/>
+                        <br/>
+                        <br/>
+                        <br/>
                     </div>
-                    <div className="w-full text-left">
-                        { isSelectingQuiz ? (
-                            <div className="h-full border rounded-box border-base-200 shadow-xl">
-                                <div>
-                                    <h1 className="text-xl px-8 pt-8">Выберите квиз</h1>
+                    <div className="flex ms-20 me-20 justify-between gap-10 h-full mb-10">
+                        <div className="pe-10">
+                            <div className="flex">
+                                <h1 style={{"font-size": "11em"}}className="bg-base-200 px-6 rounded-box font-semibold">
+                                    A3sE5
+                                </h1>
+                            </div>
+                            <br/>
+                            <div className="flex justify-center gap-5">
+                                <button className="btn btn-neutral"
+                                onClick={() => setIsSelectingQuiz(!isSelectingQuiz)}>
+                                    Выбрать квиз
+                                </button>
+                                <button className="btn btn-primary" disabled={selectedQuiz == undefined}
+                                onClick={() => {
+                                        document.getElementById("root").requestFullscreen()
+                                        setStatus("question")
+                                        setSelectedQuiz(undefined)
+                                        setPickedAnswer(undefined)
+                                }}>
+                                    Запустить квиз
+                                </button>
+                            </div>
+                            {selectedQuiz && (
+                                <div className="flex justify-center mt-4 text-left">
+                                    <QuizCard data={quiz} 
+                                        isSelecting={true}
+                                        current={true}
+                                        isDisplay={true}
+                                    />
                                 </div>
-                                <div className="divider mb-0"></div>
-                                <div className="flex flex-wrap gap-3 p-8">
-                                    {quizData.map(e => (
-                                        <QuizCard data={e} 
-                                            isSelecting={true}
-                                            current={e.id == selectedQuiz}
-                                            setQuiz={() => {
-                                                setSelectedQuiz(e.id)
-                                                setIsSelectingQuiz(false)
-                                            }}
+                            )}
+                        </div>
+                        <div className="w-full text-left">
+                            { isSelectingQuiz ? (
+                                <div className="h-full border rounded-box border-base-200 shadow-xl">
+                                    <div>
+                                        <h1 className="text-xl px-8 pt-8">Выберите квиз</h1>
+                                    </div>
+                                    <div className="divider mb-0"></div>
+                                    <div className="flex flex-wrap gap-3 p-8">
+                                        {quizData.map(e => (
+                                            <QuizCard data={e} 
+                                                isSelecting={true}
+                                                current={e.id == selectedQuiz}
+                                                setQuiz={() => {
+                                                    setSelectedQuiz(e.id)
+                                                    setIsSelectingQuiz(false)
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : (
+                                    <div className="flex flex-wrap gap-3 px-8">
+                                        {users.map(e => <UserPanel user={e}/>)}
+                                    </div>
+                                )
+                            }
+                        </div>
+                    </div>
+                </div>
+                ) : (status == "question") ? (
+                    <div className="h-dvh flex pb-4">
+                        <div className="mx-auto max-w-7xl px-3 flex flex-col justify-between grow gap-5">
+                            <div>
+                                <div className="flex shrink justify-center">
+                                    <div className="text-center card card-sm bg-base-200 border border-base-300 my-3 p-1">
+                                        <h1 className="text-2xl px-2 font-semibold">
+                                            {question.id}/10
+                                        </h1>
+                                    </div>
+                                </div>
+                                <div className="text-center card bg-base-200 border border-base-300 p-5 pe-2 overflow-y-scroll shadow-sm max-h-80">
+                                    <h1 className="text-2xl md:text-4xl px-6 font-semibold">
+                                        {question.title}
+                                    </h1>
+                                </div>
+                            </div>
+                            <div className="flex justify-center max-w h-100">
+                                <img className="object-contain" src="dummyquestion.jpg"/>
+                            </div>
+                            <div className="flex flex-col gap-4">
+                                <div className="flex flex-wrap gap-3 justify-center">
+                                    {question.answers.map((answer, i) => (
+                                        <Anwser answer={answer} index={i} pick={() => {
+                                            if(question.correct == undefined) pickAnswer(i)
+                                        }}
+                                            picked={pickedAnswer == i} correct={question.correct}
                                         />
                                     ))}
                                 </div>
-                            </div>
-                        ) : (
-                                <div className="flex flex-wrap gap-3 px-8">
-                                    {users.map(e => <UserPanel user={e}/>)}
+                                <div className="flex justify-center">
+                                    <div className="flex flex-row items-center justify-center card bg-base-200 p-3 gap-3">
+                                        <button className="btn btn-neutral"
+                                            onClick={() => {
+                                                setStatus("idle")
+                                                setQuestion({...question, correct: undefined})
+                                            }}>Завершить квиз</button>
+                                        <div className="divider divider-horizontal mx-1"></div>
+                                        {(question.correct == undefined) ? (
+                                            <button className="btn btn-primary"
+                                                onClick={() => {
+                                                    setQuestion({
+                                                        ...question,
+                                                        correct: 3
+                                                    })
+                                                }}
+                                            >Завершить вопрос</button>
+                                        ) : (
+                                            <button className="btn btn-primary"
+                                                onClick={() => setStatus("ranking")}
+                                            >Следующий вопрос</button>
+                                        )}
+                                    </div>
                                 </div>
-                            )
-                        }
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
+                ) : (status == "ranking") ? (
+                    <></>
+                ) : (status == "leaderboard") ? (
+                    <></>
+                ) : (
+                    <></>
+                )
+            }
         </div>
     )
 }

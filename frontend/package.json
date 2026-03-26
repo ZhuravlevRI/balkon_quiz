@@ -19,6 +19,7 @@
     "@tanstack/react-router": "^1.166.3",
     "@tanstack/react-router-devtools": "^1.166.3",
     "daisyui": "^5.5.19",
+    "jotai": "^2.19.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.71.2",

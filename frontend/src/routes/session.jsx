@@ -11,12 +11,14 @@ export const Route = createFileRoute('/session')({
   component: RouteComponent,
 })
 
-function Anwser({index, answer, pick}) {
+function Anwser({index, answer, pick, picked, correct}) {
     return (
-        <div className="flex items-center gap-2 p-3 md:w-48/100 w-full bg-base-200 rounded-box">
-            <button className="badge bg-primary py-4">{index+1}</button>
+        <button className={"flex items-center gap-2 p-3 md:w-48/100 w-full bg-base-200 rounded-box " + 
+            (picked ? "outline-3 " + (correct == undefined ? "" : correct==index ? "outline-success" : "outline-error") : "")}
+        onClick={pick}>
+            <div className={"badge py-4 " + (correct == undefined ? "bg-primary" : correct==index ? "bg-success" : "bg-error")}>{index+1}</div>
             <p className="text-xl">{answer}</p>
-        </div>
+        </button>
     )
 }
 
@@ -55,7 +57,7 @@ function RouteComponent() {
     // const [status, setStatus] = useState("question");
     const [status, setStatus] = useAtom(statusAtom);
 
-    const question = {
+    const [question, setQuestion] = useState({
         id: 1,
         title: "Что это такое?",
         image: undefined,
@@ -65,7 +67,13 @@ function RouteComponent() {
             "Помогите",
             "Какае-то там функция, вроде как",
         ],
-        correct: 3
+        correct: undefined
+    });
+
+    const [pickedAnswer, setPickedAnswer] = useState(undefined);
+
+    function pickAnswer(index) {
+        setPickedAnswer(index)
     }
 
     return (
@@ -140,20 +148,55 @@ function RouteComponent() {
                     </div>
                 </div>
                 ) : (status == "question") ? (
-                    <div className="h-dvh flex py-15">
+                    <div className="h-dvh flex pb-4">
                         <div className="mx-auto max-w-7xl px-3 flex flex-col justify-between grow gap-5">
-                            <div className="text-center card bg-base-200 border border-base-300 p-5 pe-2 overflow-y-scroll shadow-sm max-h-80">
-                                <h1 className="text-2xl md:text-4xl px-6 font-semibold">
-                                    {question.title}
-                                </h1>
+                            <div>
+                                <div className="flex shrink justify-center">
+                                    <div className="text-center card card-sm bg-base-200 border border-base-300 my-3 p-1">
+                                        <h1 className="text-2xl px-2 font-semibold">
+                                            {question.id}/10
+                                        </h1>
+                                    </div>
+                                </div>
+                                <div className="text-center card bg-base-200 border border-base-300 p-5 pe-2 overflow-y-scroll shadow-sm max-h-80">
+                                    <h1 className="text-2xl md:text-4xl px-6 font-semibold">
+                                        {question.title}
+                                    </h1>
+                                </div>
                             </div>
                             <div className="flex justify-center max-w h-100">
-                                <img className="object-contain" src="public/dummyquestion.jpg"/>
+                                <img className="object-contain" src="dummyquestion.jpg"/>
                             </div>
-                            <div className="flex flex-wrap gap-3 justify-center">
-                                {question.answers.map((answer, i) => (
-                                    <Anwser answer={answer} index={i}/>
-                                ))}
+                            <div className="flex flex-col gap-4">
+                                <div className="flex flex-wrap gap-3 justify-center">
+                                    {question.answers.map((answer, i) => (
+                                        <Anwser answer={answer} index={i} pick={() => {
+                                            if(question.correct == undefined) pickAnswer(i)
+                                        }}
+                                            picked={pickedAnswer == i} correct={question.correct}
+                                        />
+                                    ))}
+                                </div>
+                                <div className="flex justify-center">
+                                    <div className="flex flex-row items-center justify-center card bg-base-200 p-3 gap-3">
+                                        <button className="btn btn-neutral">Завершить квиз</button>
+                                        <div className="divider divider-horizontal mx-1"></div>
+                                        {(question.correct == undefined) ? (
+                                            <button className="btn btn-primary"
+                                                onClick={() => {
+                                                    setQuestion({
+                                                        ...question,
+                                                        correct: 3
+                                                    })
+                                                }}
+                                            >Завершить вопрос</button>
+                                        ) : (
+                                            <button className="btn btn-primary"
+                                                onClick={() => setStatus("ranking")}
+                                            >Следующий вопрос</button>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

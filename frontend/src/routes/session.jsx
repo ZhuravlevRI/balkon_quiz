@@ -87,7 +87,7 @@ function RouteComponent() {
                         <br/>
                         <br/>
                     </div>
-                    <div className="flex ms-20 me-10 justify-between gap-10 h-full mb-10">
+                    <div className="flex ms-20 me-20 justify-between gap-10 h-full mb-10">
                         <div className="pe-10">
                             <div className="flex">
                                 <h1 style={{"font-size": "11em"}}className="bg-base-200 px-6 rounded-box font-semibold">
@@ -104,6 +104,8 @@ function RouteComponent() {
                                 onClick={() => {
                                         document.getElementById("root").requestFullscreen()
                                         setStatus("question")
+                                        setSelectedQuiz(undefined)
+                                        setPickedAnswer(undefined)
                                 }}>
                                     Запустить квиз
                                 </button>
@@ -179,7 +181,11 @@ function RouteComponent() {
                                 </div>
                                 <div className="flex justify-center">
                                     <div className="flex flex-row items-center justify-center card bg-base-200 p-3 gap-3">
-                                        <button className="btn btn-neutral">Завершить квиз</button>
+                                        <button className="btn btn-neutral"
+                                            onClick={() => {
+                                                setStatus("idle")
+                                                setQuestion({...question, correct: undefined})
+                                            }}>Завершить квиз</button>
                                         <div className="divider divider-horizontal mx-1"></div>
                                         {(question.correct == undefined) ? (
                                             <button className="btn btn-primary"

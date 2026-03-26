@@ -13,7 +13,7 @@ from app.api.deps import (
 from app.models import (
     UserRegister,
     UserPublic,
-    Token,
+    AuthResponse,
 )
 
 
@@ -38,7 +38,7 @@ def create_user(*, session: SessionDep, user_in: UserRegister) -> Any:
     return user
 
 
-@router.post("/login", response_model=Token)
+@router.post("/login", response_model=AuthResponse)
 def login_user(
     *,
     session: SessionDep,
@@ -69,7 +69,7 @@ def login_user(
         max_age=int(access_token_expires.total_seconds())
     )
 
-    return Token(access_token=token)
+    return AuthResponse(is_auth_good=True)
 
 
 @router.get("/me", response_model=UserPublic)

@@ -78,5 +78,5 @@ class Message(SQLModel):
     message: str
 
 
-class Token(SQLModel):
-    access_token: str
+class AuthResponse(SQLModel):
+    is_auth_good: bool

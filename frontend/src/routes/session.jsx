@@ -85,12 +85,11 @@ function RouteComponent() {
                         <br/>
                         <br/>
                         <br/>
-                        <br/>
                     </div>
-                    <div className="flex ms-20 me-20 justify-between gap-10 h-full mb-10">
-                        <div className="pe-10">
-                            <div className="flex">
-                                <h1 style={{"font-size": "11em"}}className="bg-base-200 px-6 rounded-box font-semibold">
+                    <div className="flex lg:ms-20 lg:me-20 justify-between gap-10 h-full mb-10 lg:flex-nowrap flex-wrap justify-center">
+                        <div className="">
+                            <div className="flex justify-center">
+                                <h1 className="text-[6em] sm:text-[11em] bg-base-200 px-6 rounded-box font-semibold">
                                     A3sE5
                                 </h1>
                             </div>
@@ -111,7 +110,7 @@ function RouteComponent() {
                                 </button>
                             </div>
                             {selectedQuiz && (
-                                <div className="flex justify-center mt-4 text-left">
+                                <div className="flex justify-center mt-6 text-left mx-5 lg:mx-0">
                                     <QuizCard data={quiz} 
                                         isSelecting={true}
                                         current={true}
@@ -120,9 +119,9 @@ function RouteComponent() {
                                 </div>
                             )}
                         </div>
-                        <div className="w-full text-left">
+                        <div className="w-full text-left mb-5">
                             { isSelectingQuiz ? (
-                                <div className="h-full border rounded-box border-base-200 shadow-xl">
+                                <div className="h-full border rounded-box border-base-200 shadow-xl mx-2">
                                     <div>
                                         <h1 className="text-xl px-8 pt-8">Выберите квиз</h1>
                                     </div>

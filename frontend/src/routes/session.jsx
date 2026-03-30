@@ -24,16 +24,25 @@ function Anwser({index, answer, pick, picked, correct}) {
 
 function RouteComponent() {
     const users = [
-        "Лазарев Николай Владиславович", 
-        "Трифонова София Львовна", 
-        "Васильев Матвей Артемьевич", 
-        "Романов Александр Артёмович", 
-        "Максимова Софья Ярославовна", 
-        "Черкасова Мария Ильинична", 
-        "Титова Полина Артёмовна", 
-        "Потапова Кира Станиславовна", 
-        "Денисов Артём Степанович", 
-        "Воробьева Кира Максимовна", 
+        {name: "Лазарев Николай Владиславович", score: 100},
+        {name: "Трифонова София Львовна", score: 100},
+        {name: "Васильев Матвей Артемьевич", score: 100},
+        {name: "Романов Александр Артёмович", score: 100},
+        {name: "Максимова Софья Ярославовна", score: 100},
+        {name: "Черкасова Мария Ильинична", score: 100},
+        {name: "Титова Полина Артёмовна", score: 100},
+        {name: "Потапова Кира Станиславовна", score: 100},
+        {name: "Денисов Артём Степанович", score: 100},
+        {name: "Воробьева Кира Максимовна", score: 100},
+        {name: "Максимова Софья Ярославовна", score: 100},
+        {name: "Черкасова Мария Ильинична", score: 100},
+
+        {name: "Титова Полина Артёмовна", score: 100},
+        {name: "Потапова Кира Станиславовна", score: 100},
+        {name: "Денисов Артём Степанович", score: 100},
+        {name: "Воробьева Кира Максимовна", score: 100},
+        {name: "Максимова Софья Ярославовна", score: 100},
+        {name: "Черкасова Мария Ильинична", score: 100},
     ];
     const quizData = [
         {
@@ -141,7 +150,7 @@ function RouteComponent() {
                                 </div>
                             ) : (
                                     <div className="flex flex-wrap gap-3 px-8">
-                                        {users.map(e => <UserPanel user={e}/>)}
+                                        {users.map(e => <UserPanel user={e} scoreless admin={true}/>)}
                                     </div>
                                 )
                             }
@@ -206,7 +215,46 @@ function RouteComponent() {
                         </div>
                     </div>
                 ) : (status == "ranking") ? (
-                    <></>
+                    <div className="h-dvh max-h-dvh flex">
+                        <div className="grow flex flex-col text-center gap-5 py-15">
+                            <div className="flex grow justify-center">
+                                <div className="text-center card card-sm bg-base-200 border border-base-300 p-4 mx-4">
+                                    <h1 className="text-5xl">Результаты вопроса {question.id}/10</h1>
+                                </div>
+                            </div>
+                            <div className="flex flex-row-reverse text-center gap-5 justify-center flex-wrap grow min-h-0 content-start">
+                                {/* <div className="flex flex-col "> */}
+                                    {/* {users.map(e => <UserPanel user={e}/>)} */}
+                                    {/* <div className="flex flex-col hcard border rounded-box border-base-200 "> */}
+                                        {/* <div className="flex flex-col gap-3 px-8 card-body"> */}
+                                        {/* </div> */}
+                                    {/* </div> */}
+                                    {/* <h1 className="text-5xl">aontsehuaosnteu</h1> */}
+                                {/* </div> */}
+                                <div className="flex flex-col text-center gap-5 justify-center">
+                                    <UserPanel user={{name: "Текующий игрок", score: 100}}/>
+                                    <div className="flex flex-row items-center justify-center card bg-base-200 p-3 gap-3">
+                                        <button className="btn btn-neutral"
+                                            onClick={() => {
+                                                setStatus("idle")
+                                                setQuestion({...question, correct: undefined})
+                                            }}>Завершить квиз</button>
+                                        <div className="divider divider-horizontal mx-1"></div>
+                                        <button className="btn btn-primary"
+                                            onClick={() => setStatus("leaderboard")}
+                                        >Следующий вопрос</button>
+                                    </div>
+                                </div>
+                                <div className="lg:max-h-full flex flex-col ">
+                                    <div className="flex flex-col hcard border rounded-box border-base-200 overflow-y-scroll mx-2">
+                                        <div className="flex flex-col gap-3 px-4 lg:px-8 card-body">
+                                            {users.map(e => <UserPanel user={e} admin={true}/>)}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 ) : (status == "leaderboard") ? (
                     <></>
                 ) : (

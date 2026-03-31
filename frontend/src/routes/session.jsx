@@ -218,7 +218,7 @@ function RouteComponent() {
                     <div className="h-dvh max-h-dvh flex">
                         <div className="grow flex flex-col text-center gap-5 py-15">
                             <div className="flex grow justify-center">
-                                <div className="text-center card card-sm bg-base-200 border border-base-300 p-4 mx-4">
+                                <div className="text-center card outline-none card-sm bg-base-200 border border-base-300 p-4 mx-4">
                                     <h1 className="text-5xl">Результаты вопроса {question.id}/10</h1>
                                 </div>
                             </div>
@@ -246,7 +246,7 @@ function RouteComponent() {
                                     </div>
                                 </div>
                                 <div className="lg:max-h-full flex flex-col ">
-                                    <div className="flex flex-col hcard border rounded-box border-base-200 overflow-y-scroll mx-2">
+                                    <div className="flex flex-col card border rounded-box border-base-200 overflow-y-scroll mx-2">
                                         <div className="flex flex-col gap-3 px-4 lg:px-8 card-body">
                                             {users.map(e => <UserPanel user={e} admin={true}/>)}
                                         </div>

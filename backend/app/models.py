@@ -34,7 +34,9 @@ class User(UserBase, table=True):
         sa_type=DateTime(timezone=True),
     )
 
-    quizzes_created: list["Quiz"] = Relationship(back_populates="created_by")
+    quizzes_created: list["Quiz"] = Relationship(
+        back_populates="created_by",
+        sa_relationship_kwargs={"lazy": "dynamic"})
 
 
 class UserPublic(UserBase):
@@ -44,12 +46,12 @@ class UserPublic(UserBase):
 
 class QuizBase(SQLModel):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
-    title: str = Field(min_length=1, max_length=255)
-    description: str | None = Field(default=None, max_length=255)
+    title: str = Field(default="Новый квиз", min_length=1, max_length=255)
+    description: str = Field(default="", max_length=255)
 
 
-class QuizCreate(QuizBase):
-    pass
+class QuizNew(SQLModel):
+    id: uuid.UUID
 
 
 class Quiz(QuizBase, table=True):

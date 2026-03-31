@@ -3,7 +3,12 @@ import uuid
 from sqlmodel import Session, select
 
 from app.core.security import get_password_hash, verify_password
-from app.models import User, UserCreate, Quiz, QuizCreate
+from app.models import (
+    User,
+    UserCreate,
+    Quiz,
+    QuizBase,
+)
 
 
 def create_user(*, session: Session, user_create: UserCreate) -> User:
@@ -51,9 +56,13 @@ def authenticate(*, session: Session, username: str, password: str) -> User | No
     return db_user
 
 
-def create_quiz(*, session: Session, quiz_in: QuizCreate, owner_id: uuid.UUID) -> Quiz:
-    db_item = Quiz.model_validate(quiz_in, update={"created_by_id": owner_id})
+def create_quiz(*, session: Session, user_id: uuid.UUID) -> Quiz:
+    db_item = Quiz(created_by_id=user_id)
     session.add(db_item)
     session.commit()
     session.refresh(db_item)
     return db_item
+
+
+def get_quiz_list(*, session: Session, user_id: uuid.UUID, page: int) -> list[QuizBase]:
+    return session.exec(select(Quiz).where(Quiz.created_by_id == user_id).offset(10 * page).limit(10))

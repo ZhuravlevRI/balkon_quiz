@@ -65,11 +65,29 @@ def login_user(
         value=f"Bearer {token}",
         httponly=True,  # no java access
         secure=False,  # set True in HTTPS prod
-        samesite="lax",
+        samesite="strict",
         max_age=int(access_token_expires.total_seconds())
     )
 
     return AuthResponse(is_auth_good=True)
+
+
+@router.post("/user/logout")
+def user_logout(
+    response: Response,
+    session: SessionDep,
+):
+
+    response.set_cookie(
+        key="access_token",
+        value="( . Y . ) <-- BOOBS",  # why are you reading this?
+        httponly=True,  # no java access
+        secure=False,  # set True in HTTPS prod
+        samesite="strict",
+        max_age=1
+    )
+
+    return {"status": True}
 
 
 @router.get("/me", response_model=UserPublic)

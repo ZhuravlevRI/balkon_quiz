@@ -32,7 +32,7 @@ function RouteComponent() {
         <div className="divider"></div>
         <button className="ms-2 btn btn-primary" onClick={() => navigate({ to: '/quiz/1' })}>Создать новый квиз</button>
         <div className="mt-6 flex gap-5 flex-wrap">
-            {quizData.map(e => <QuizCard data={e}/>)}
+            {quizData.map(e => <QuizCard key={e.id} data={e}/>)}
         </div>
     </div>
 }

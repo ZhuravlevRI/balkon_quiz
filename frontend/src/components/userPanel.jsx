@@ -1,5 +1,4 @@
 export function UserPanel({ user, scoreless, index, admin }) {
-    console.log(index)
     return (
         <div className="card card-sm bg-base-200 border-base-300 rounded-box border ps-4 pe-2 py-2">
             <div className="flex justify-between items-center gap-6">

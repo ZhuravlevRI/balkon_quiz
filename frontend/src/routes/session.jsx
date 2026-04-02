@@ -138,6 +138,7 @@ function RouteComponent() {
                                     <div className="flex flex-wrap gap-3 p-8">
                                         {quizData.map(e => (
                                             <QuizCard data={e} 
+                                                key={e.id}
                                                 isSelecting={true}
                                                 current={e.id == selectedQuiz}
                                                 setQuiz={() => {
@@ -150,7 +151,7 @@ function RouteComponent() {
                                 </div>
                             ) : (
                                     <div className="flex flex-wrap gap-3 px-8">
-                                        {users.map(e => <UserPanel user={e} scoreless admin={true}/>)}
+                                        {users.map((e, i) => <UserPanel key={i} user={e} scoreless admin={true}/>)}
                                     </div>
                                 )
                             }
@@ -195,7 +196,7 @@ function RouteComponent() {
                             <div className="flex flex-col gap-4">
                                 <div className="flex flex-wrap gap-3 justify-center">
                                     {question.answers.map((answer, i) => (
-                                        <Anwser answer={answer} index={i} pick={() => {
+                                        <Anwser key={i} answer={answer} index={i} pick={() => {
                                             if(question.correct == undefined) pickAnswer(i)
                                         }}
                                             picked={pickedAnswer == i} correct={question.correct}
@@ -263,7 +264,7 @@ function RouteComponent() {
                                 <div className="lg:max-h-full flex flex-col ">
                                     <div className="flex flex-col card border rounded-box border-base-200 overflow-y-scroll mx-2">
                                         <div className="flex flex-col gap-3 px-4 lg:px-8 card-body">
-                                            {users.map((e, i) => <UserPanel user={e} index={i+1} admin={true}/>)}
+                                            {users.map((e, i) => <UserPanel user={e} key={i} index={i+1} admin={true}/>)}
                                         </div>
                                     </div>
                                 </div>

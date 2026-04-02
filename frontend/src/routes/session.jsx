@@ -161,11 +161,26 @@ function RouteComponent() {
                     <div className="h-dvh flex pb-4">
                         <div className="mx-auto max-w-7xl px-3 flex flex-col justify-between grow gap-5">
                             <div>
-                                <div className="flex shrink justify-center">
-                                    <div className="text-center card card-sm bg-base-200 border border-base-300 my-3 p-1">
-                                        <h1 className="text-2xl px-2 font-semibold">
-                                            {question.id}/10
-                                        </h1>
+                                <div className="flex">
+                                    <div className="flex w-1/3"></div>
+                                    <div className="flex w-1/3 justify-center">
+                                        <div className="text-center card card-sm bg-base-200 border border-base-300 my-3 p-1">
+                                            <h1 className="text-2xl px-2 font-semibold">
+                                                {question.id}/10
+                                            </h1>
+                                        </div>
+                                    </div>
+                                    <div className="flex w-1/3 justify-end">
+                                        <div className="text-center card card-sm bg-base-200 border border-base-300 my-3 p-1">
+                                            <div className="flex items-center gap-2 px-1">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                                                </svg>
+                                                <h1 className="text-2xl pe-1 font-semibold">
+                                                    5/10
+                                                </h1>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="text-center card bg-base-200 border border-base-300 p-5 pe-2 overflow-y-scroll shadow-sm max-h-80">
@@ -248,7 +263,7 @@ function RouteComponent() {
                                 <div className="lg:max-h-full flex flex-col ">
                                     <div className="flex flex-col card border rounded-box border-base-200 overflow-y-scroll mx-2">
                                         <div className="flex flex-col gap-3 px-4 lg:px-8 card-body">
-                                            {users.map(e => <UserPanel user={e} admin={true}/>)}
+                                            {users.map((e, i) => <UserPanel user={e} index={i+1} admin={true}/>)}
                                         </div>
                                     </div>
                                 </div>

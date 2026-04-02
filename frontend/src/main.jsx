@@ -18,6 +18,7 @@ const router = createRouter({
 })
 
 const queryClient = new QueryClient()
+import { Toaster } from 'react-hot-toast';
 
 // Render the app
 const rootElement = document.getElementById('root')
@@ -28,6 +29,11 @@ if (!rootElement.innerHTML) {
             <QueryClientProvider client={queryClient}>
                 <RouterProvider router={router} />
             </QueryClientProvider>
+            <Toaster toastOptions={{
+                error: {
+                    className: "bg-base-200"
+                }
+            }}/>
         </StrictMode>,
     )
 }

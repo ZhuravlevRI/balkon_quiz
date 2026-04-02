@@ -7,6 +7,9 @@ import {
     postRegister,
 } from "@/api.js"
 
+import toast from 'react-hot-toast';
+import { handleError } from '@/utils.js';
+
 export const useAuth = () => {
     const navigate = useNavigate()
     const queryClient = useQueryClient()
@@ -25,9 +28,10 @@ export const useAuth = () => {
         mutationFn: (data) =>
             postRegister(data),
         onSuccess: () => {
+            toast.success("Вы успешно зарегестрировались");
             navigate({ to: "/login" })
         },
-        // onError: handleError.bind(showErrorToast),
+        onError: handleError.bind(toast.error),
         // onSettled: () => {
         //     queryClient.invalidateQueries({ queryKey: ["users"] })
         // },
@@ -44,7 +48,7 @@ export const useAuth = () => {
             queryClient.invalidateQueries({ queryKey: ["currentUser"] })
             refetch()
         },
-        // onError: handleError.bind(showErrorToast),
+        onError: handleError.bind(toast.error),
         // onSettled: () => {
             // queryClient.invalidateQueries({ queryKey: ["currentUser"] })
         // },

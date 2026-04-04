@@ -110,7 +110,7 @@ function RouteComponent() {
                                 </button>
                                 <button className="btn btn-primary" disabled={selectedQuiz == undefined}
                                 onClick={() => {
-                                        document.getElementById("root").requestFullscreen()
+                                        // document.getElementById("root").requestFullscreen()
                                         setStatus("question")
                                         setSelectedQuiz(undefined)
                                         setPickedAnswer(undefined)
@@ -248,7 +248,7 @@ function RouteComponent() {
                                     {/* <h1 className="text-5xl">aontsehuaosnteu</h1> */}
                                 {/* </div> */}
                                 <div className="flex flex-col text-center gap-5 justify-center">
-                                    <UserPanel user={{name: "Текующий игрок", score: 100}}/>
+                                    <UserPanel user={{name: "Текующий игрок", score: 100}} index={5}/>
                                     <div className="flex flex-row items-center justify-center card bg-base-200 p-3 gap-3">
                                         <button className="btn btn-neutral"
                                             onClick={() => {
@@ -272,7 +272,73 @@ function RouteComponent() {
                         </div>
                     </div>
                 ) : (status == "leaderboard") ? (
-                    <></>
+                    <div className="grow flex flex-col text-center gap-5 py-6">
+                        <div className="flex grow justify-center">
+                            <div className="text-center card outline-none card-sm bg-base-200 border border-base-300 p-4 mx-4">
+                                <h1 className="text-5xl">Результаты квиза</h1>
+                            </div>
+                        </div>
+                        <div className="flex justify-center">
+                                    <div className="grow flex max-w-3xl justify-center gap-5 items-end h-75 md:h-125 mx-3">
+                                        <div className="flex flex-col gap-3 h-17/20">
+                                            <h1 className="text-md md:text-2xl">Лазарев Николай Владиславович</h1>
+                                            <div className="grow flex flex-col bg-slate-400 rounded-box justify-between items-center p-3 pb-6">
+                                                <div className="text-3xl md:text-5xl">
+                                                    300
+                                                </div>
+                                                <div className="text-3xl md:text-5xl rounded-full bg-slate-500 border-0 badge p-6 md:p-8">
+                                                    2
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col gap-3 h-full">
+                                            <h1 className="text-md md:text-2xl">Потапова Кира Станиславовна</h1>
+                                            <div className="grow flex flex-col bg-yellow-500 rounded-box justify-between items-center p-3 pb-6">
+                                                <div className="text-3xl md:text-5xl">
+                                                    500
+                                                </div>
+                                                <div className="text-3xl md:text-5xl rounded-full bg-yellow-600 border-0 badge p-6 md:p-8">
+                                                    1
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col gap-3 h-7/10">
+                                            <h1 className="text-md md:text-2xl">Денисов Артём Степанович</h1>
+                                            <div className="grow flex flex-col bg-yellow-700 rounded-box justify-between items-center p-3 pb-6">
+                                                <div className="text-3xl md:text-5xl">
+                                                    200
+                                                </div>
+                                                <div className="text-3xl md:text-5xl rounded-full bg-yellow-800 border-0 badge p-6 md:p-8">
+                                                    3
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                        </div>
+                        <div className="flex grow justify-center">
+                            <div className="flex flex-col text-center gap-5 justify-center">
+                                <UserPanel user={{name: "Текующий игрок", score: 100}} index={5}/>
+                            </div>
+                        </div>
+                        <div className="flex grow justify-center">
+                            <div className="flex flex-col gap-5">
+                                <div className="flex flex-col card border rounded-box border-base-200 overflow-y-scroll mx-2">
+                                    <div className="flex flex-col gap-3 px-4 lg:px-8 card-body">
+                                        {users.map((e, i) => <UserPanel user={e} key={i} index={i+1} admin={true}/>)}
+                                    </div>
+                                </div>
+                                        <div className="flex justify-center">
+                                            <div className="flex flex-row items-center justify-center card bg-base-200 p-3 gap-3">
+                                                <button className="btn btn-neutral"
+                                                    onClick={() => {
+                                                        setStatus("idle")
+                                                        setQuestion({...question, correct: undefined})
+                                                    }}>Завершить квиз</button>
+                                            </div>
+                                        </div>
+                            </div>
+                        </div>
+                    </div>
                 ) : (
                     <></>
                 )

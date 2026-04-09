@@ -117,7 +117,7 @@ function RouteComponent() {
         {/* </div> */}
         <div className="mx-auto max-w-3xl px-3 flex flex-col gap items-center">
             {/* <div className="animate-slidein z-10 flex-row fixed card bg-base-200 card-border border-base-300 card-sm p-3 gap-1 w-full mb-5 justify-between items-center max-w-2xl mt-8"> */}
-            <div className={"transition z-1000 flex-row fixed card bg-base-200 card-border border-base-300 card-sm p-3 gap-1 w-full mb-5 justify-between items-center max-w-2xl mt-8 " + (isDirty ? "" : "-translate-y-5 opacity-0")}>
+            <div className={"transition z-1000 flex-row fixed card bg-base-200 card-border border-base-300 card-sm p-3 gap-1 w-full mb-5 justify-between items-center max-w-2xl mt-8 " + (isDirty ? "" : "-translate-y-5 opacity-0 pointer-events-none")}>
                 <div>
                     <h1 className="md:text-xl">Есть несохраненные изменения</h1>
                 </div>

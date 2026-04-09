@@ -35,11 +35,14 @@ function RouteComponent() {
         description: "Квиз для тестирования работоспособности приложения",
         questions: [],
     }
-    // TODO: add id to questions
     const [data, setData] = useState(tempData)
     const [idCount, setIdCount] = useState(tempData.questions.length)
 
+    const [isDirty, setIsDirty] = useState(false)
+    const [dataOld, setDataOld] = useState(data)
+
     function setQuestionData(index, questionData) {
+        setIsDirty(true)
         setData({
             ...data,
             questions: data.questions.map((question, i) => {
@@ -52,6 +55,7 @@ function RouteComponent() {
     }
 
     function removeQuestion(index) {
+        setIsDirty(true)
         setData({
             ...data,
             questions: [
@@ -62,6 +66,7 @@ function RouteComponent() {
     }
 
     function insertQuestion(index, questionData) {
+        setIsDirty(true)
         setData({
             ...data,
             questions: [
@@ -99,6 +104,7 @@ function RouteComponent() {
             const overIndex = data.questions.findIndex((item) => item.id === over?.id);
             const newQuestions = [...data.questions];
             newQuestions[activeIndex] = newQuestions.splice(overIndex, 1, newQuestions[activeIndex])[0];
+            setIsDirty(true);
             setData({
                     ...data,
                     questions: newQuestions
@@ -107,33 +113,64 @@ function RouteComponent() {
     }
 
     return <div>
-        <br/>
-        <br/>
-        <br/>
-        <br/>
-        <br/>
-        <br/>
         {/* <div className="flex flex-col justify-center items-center"> */}
         {/* </div> */}
-        <div className="mx-auto max-w-3xl px-3 flex flex-col gap">
-            <div className="card bg-base-200 card-border border-base-300 card-sm p-5 gap-1">
+        <div className="mx-auto max-w-3xl px-3 flex flex-col gap items-center">
+            {/* <div className="animate-slidein z-10 flex-row fixed card bg-base-200 card-border border-base-300 card-sm p-3 gap-1 w-full mb-5 justify-between items-center max-w-2xl mt-8"> */}
+            <div className={"transition z-1000 flex-row fixed card bg-base-200 card-border border-base-300 card-sm p-3 gap-1 w-full mb-5 justify-between items-center max-w-2xl mt-8 " + (isDirty ? "" : "-translate-y-5 opacity-0")}>
+                <div>
+                    <h1 className="md:text-xl">Есть несохраненные изменения</h1>
+                </div>
+                <div className="flex gap-3">
+                    <button className="btn btn-neutral"
+                        onClick={() => {
+                            setIsDirty(false)
+                            setData(dataOld)
+                        }
+                    }>
+                        Отменить
+                    </button>
+                    <button className="btn btn-primary"
+                        onClick={() => {
+                            setIsDirty(false)
+                            setDataOld(data)
+                        }
+                    }>
+                        Сохранить
+                    </button>
+                </div>
+            </div>
+            <div>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+            </div>
+            <div className="card bg-base-200 card-border border-base-300 card-sm p-5 gap-1 w-full">
                 <input type="text" placeholder="Название квиза" className="input text-2xl w-full" 
-                    value={data.title} onChange={e => setData({
-                        ...data,
-                        title: e.target.value
-                    })}
+                    value={data.title} onChange={e => {
+                        setIsDirty(true)
+                        setData({
+                            ...data,
+                            title: e.target.value
+                        })}
+                    }
                 />
                 <textarea type="text" placeholder="Описание" className="w-full textarea text-xl"
-                    value={data.description} onChange={e => setData({
-                        ...data,
-                        description: e.target.value
-                    })}
+                    value={data.description} onChange={e => {
+                        setIsDirty(true)
+                        setData({
+                            ...data,
+                            description: e.target.value
+                        })}
+                    }
                 />
                 {/* <div className="card-body"> */}
                 {/* </div> */}
             </div>
 
-            <div>
+            <div className="w-full">
                 <DndContext
                     sensors={sensors}
                     collisionDetection={closestCenter}

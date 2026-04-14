@@ -8,6 +8,7 @@ from app.models import (
     UserCreate,
     Quiz,
     QuizBase,
+    Question,
 )
 
 
@@ -58,6 +59,14 @@ def authenticate(*, session: Session, username: str, password: str) -> User | No
 
 def create_quiz(*, session: Session, user_id: uuid.UUID) -> Quiz:
     db_item = Quiz(created_by_id=user_id)
+    session.add(db_item)
+    session.commit()
+    session.refresh(db_item)
+    return db_item
+
+
+def create_question(*, session: Session, user_id: uuid.UUID, quiz_id: uuid.UUID) -> Question:
+    db_item = Quiz(quiz_id=quiz_id)
     session.add(db_item)
     session.commit()
     session.refresh(db_item)

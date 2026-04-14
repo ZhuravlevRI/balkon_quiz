@@ -44,6 +44,27 @@ class UserPublic(UserBase):
     created_at: datetime | None = None
 
 
+class QuestionBase(SQLModel):
+    quiz_id: uuid.UUID | None = Field(
+        default=None,
+        foreign_key="quizzes.id",
+        ondelete="SET NULL",
+    )
+    order: int
+    title: str
+    img: str | None
+    answer0: str
+    answer1: str
+    answer2: str
+    answer3: str
+    correct: int = Field(ge=0, le=3)
+
+
+class Question(QuestionBase, table=True):
+    __tablename__ = "questions"
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+
+
 class QuizBase(SQLModel):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
     title: str = Field(default="Новый квиз", min_length=1, max_length=255)
@@ -57,9 +78,8 @@ class QuizNew(SQLModel):
 class Quiz(QuizBase, table=True):
     __tablename__ = "quizzes"
 
-    questions_json: list[dict[str, Any]] = Field(
+    questions: list[uuid.UUID] = Field(
         default_factory=list,
-        sa_column=Column(JSON, nullable=False),
     )
 
     created_at: datetime = Field(

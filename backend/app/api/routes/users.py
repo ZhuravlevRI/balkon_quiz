@@ -76,7 +76,7 @@ def login_user(
 def user_logout(
     response: Response,
     session: SessionDep,
-):
+) -> Any:
 
     response.set_cookie(
         key="access_token",

@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Optional
 
 from sqlalchemy import JSON, Column, DateTime
 from sqlmodel import Field, Relationship, SQLModel
@@ -60,9 +60,21 @@ class QuestionBase(SQLModel):
     correct: int = Field(ge=0, le=3)
 
 
+class QuestionCreate(QuestionBase):
+    quiz_id: uuid.UUID
+
+
+class QuestionResponse(QuestionBase):
+    id: uuid.UUID
+
+    class Config:
+        from_attributes = True
+
+
 class Question(QuestionBase, table=True):
     __tablename__ = "questions"
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+    quiz: Optional["Quiz"] = Relationship(back_populates="questions")
 
 
 class QuizBase(SQLModel):
@@ -71,15 +83,37 @@ class QuizBase(SQLModel):
     description: str = Field(default="", max_length=255)
 
 
-class QuizNew(SQLModel):
+class QuizCreate(SQLModel):
     id: uuid.UUID
+
+
+class QuizUpdate(SQLModel):
+    title: str | None = None
+    description: str | None = None
+
+
+class QuizListResponse(QuizBase):
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class QuizWithQuestions(QuizBase):
+    created_at: datetime
+    created_by_id: uuid.UUID | None = None
+    questions: list["QuestionResponse"] = []
+
+    class Config:
+        from_attributes = True
 
 
 class Quiz(QuizBase, table=True):
     __tablename__ = "quizzes"
 
-    questions: list[uuid.UUID] = Field(
-        default_factory=list,
+    questions: list["Question"] = Relationship(
+        back_populates="quiz",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
     )
 
     created_at: datetime = Field(

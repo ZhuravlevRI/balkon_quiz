@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 
 import { UserPanel } from '@/components/userPanel.jsx'
@@ -6,6 +6,18 @@ import { QuizCard } from '@/components/quizCard.jsx'
 
 import { useAtom } from 'jotai'
 import { statusAtom } from '@/atoms.jsx'
+
+import {
+    useMutation,
+    useInfiniteQuery
+} from '@tanstack/react-query'
+
+import { 
+    getQuizList
+} from "@/api.js"
+
+import toast from 'react-hot-toast';
+import { handleError } from '@/utils.js';
 
 export const Route = createFileRoute('/session')({
   component: RouteComponent,
@@ -44,23 +56,30 @@ function RouteComponent() {
         {name: "Максимова Софья Ярославовна", score: 100},
         {name: "Черкасова Мария Ильинична", score: 100},
     ];
-    const quizData = [
-        {
-            id: 1,
-            title: "Тестовый квиз с длинным, интересным названием",
-            description: "Квиз для теста вебсайта",
-            questionCount: 10,
+
+    const {
+        data: quizesData,
+        error,
+        fetchNextPage,
+        hasNextPage,
+        isFetching,
+        isFetchingNextPage,
+        status: quizesStatus,
+    } = useInfiniteQuery({
+        queryKey: ['quizes'],
+        queryFn: getQuizList,
+        initialPageParam: 0,
+        getNextPageParam: (lastPage, allPages, lastPageParam) => {
+            if (!lastPage || lastPage.length === 0 || lastPage.length < 10) {
+                return null;
+            }
+            return lastPageParam + 1;
         },
-        {
-            id: 2,
-            title: "МАИ квиз",
-            description: "Квиз для маёвцов про наш любимый институт",
-            questionCount: 15,
-        }
-    ];
+    })
+    console.log(quizesData, quizesStatus, error, hasNextPage, isFetching)
+
     const [isSelectingQuiz, setIsSelectingQuiz] = useState(false);
-    const [selectedQuiz, setSelectedQuiz] = useState(undefined);
-    const quiz = quizData.find(x => x.id == selectedQuiz);
+    const [quiz, setQuiz] = useState(undefined);
 
     // const [status, setStatus] = useState("idle");
     // const [status, setStatus] = useState("question");
@@ -88,14 +107,15 @@ function RouteComponent() {
     return (
         <div>
             {(status == "idle") ? (
-                <div className="flex flex-col text-center h-dvh">
+                <div className="flex flex-col text-center h-dvh max-h-dvh">
                     <div>
                         <br/>
                         <br/>
                         <br/>
                         <br/>
                     </div>
-                    <div className="flex lg:ms-20 lg:me-20 justify-between gap-10 h-full mb-10 lg:flex-nowrap flex-wrap justify-center">
+
+                    <div className="flex lg:ms-20 lg:me-20 justify-between gap-10 grow min-h-0 mb-10 lg:flex-nowrap flex-wrap justify-center">
                         <div className="">
                             <div className="flex justify-center">
                                 <h1 className="text-[6em] sm:text-[11em] bg-base-200 px-6 rounded-box font-semibold">
@@ -108,17 +128,17 @@ function RouteComponent() {
                                 onClick={() => setIsSelectingQuiz(!isSelectingQuiz)}>
                                     Выбрать квиз
                                 </button>
-                                <button className="btn btn-primary" disabled={selectedQuiz == undefined}
+                                <button className="btn btn-primary" disabled={quiz == undefined}
                                 onClick={() => {
                                         // document.getElementById("root").requestFullscreen()
                                         setStatus("question")
-                                        setSelectedQuiz(undefined)
+                                        setQuiz(undefined)
                                         setPickedAnswer(undefined)
                                 }}>
                                     Запустить квиз
                                 </button>
                             </div>
-                            {selectedQuiz && (
+                            {quiz && (
                                 <div className="flex justify-center mt-6 text-left mx-5 lg:mx-0">
                                     <QuizCard data={quiz} 
                                         isSelecting={true}
@@ -128,33 +148,70 @@ function RouteComponent() {
                                 </div>
                             )}
                         </div>
-                        <div className="w-full text-left mb-5">
+                        <div className="text-left mb-5 flex flex-col max-h-full w-full">
+                            {/* <div className=""> */}
                             { isSelectingQuiz ? (
-                                <div className="h-full border rounded-box border-base-200 shadow-xl mx-2">
+                                <div className="border rounded-box border-base-200 shadow-xl flex flex-col grow max-h-full w-full">
                                     <div>
                                         <h1 className="text-xl px-8 pt-8">Выберите квиз</h1>
                                     </div>
                                     <div className="divider mb-0"></div>
-                                    <div className="flex flex-wrap gap-3 p-8">
-                                        {quizData.map(e => (
-                                            <QuizCard data={e} 
-                                                key={e.id}
-                                                isSelecting={true}
-                                                current={e.id == selectedQuiz}
-                                                setQuiz={() => {
-                                                    setSelectedQuiz(e.id)
-                                                    setIsSelectingQuiz(false)
-                                                }}
-                                            />
-                                        ))}
-                                    </div>
+                                    {quizesStatus == 'pending' ? (
+                                        <div className="justify-center">
+                                            <span className="loading loading-spinner loading-xl"></span>
+                                        </div>
+                                    ) : quizesStatus == 'error' ? (
+                                        <p className="text-center text-2xl"> Ошибка: {error.message} </p>
+                                    ) : quizesData?.pages[0].length == 0 ? (
+                                        <p className="text-center text-2xl"> Нет квизов </p>
+                                    ) : (
+                                        <div className="flex flex-col grow lg:overflow-y-scroll">
+                                            <div className="flex flex-wrap justify-center gap-3 grow content-start p-4">
+                                                {quizesData?.pages.map((group, i) => (
+                                                    <Fragment key={i}>
+                                                        {group.map(e => (
+                                                            <QuizCard data={e} 
+                                                                key={e.id}
+                                                                isSelecting={true}
+                                                                current={e.id == quiz?.id}
+                                                                setQuiz={() => {
+                                                                    setQuiz(e)
+                                                                    setIsSelectingQuiz(false)
+                                                                }}
+                                                            />
+                                                        ))}
+                                                    </Fragment>
+                                                ))}
+                                            </div>
+                                            <div className="flex justify-center pb-4">
+                                                {quizesData?.pages[0].length > 0 && (
+                                                    <button className="btn btn-primary"
+                                                        onClick={() => fetchNextPage()}
+                                                        disabled={!hasNextPage || isFetching}
+                                                    >
+                                                        {isFetchingNextPage
+                                                            ? 'Загрузка...'
+                                                            : hasNextPage
+                                                                ? 'Загрузить больше'
+                                                                : 'Все квизы загружены'}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {(isFetching && !isFetchingNextPage) && (
+                                        <div className="justify-center">
+                                            <span className="loading loading-spinner loading-xl"></span>
+                                        </div>
+                                    )}
                                 </div>
                             ) : (
-                                    <div className="flex flex-wrap gap-3 px-8">
+                                    <div className="flex flex-wrap gap-3 px-8 lg:overflow-y-scroll">
                                         {users.map((e, i) => <UserPanel key={i} user={e} scoreless admin={true}/>)}
                                     </div>
                                 )
                             }
+                            {/* </div> */}
                         </div>
                     </div>
                 </div>

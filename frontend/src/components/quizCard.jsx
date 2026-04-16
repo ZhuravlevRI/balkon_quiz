@@ -1,10 +1,28 @@
 import { Link } from '@tanstack/react-router'
 
+import { deleteQuiz } from '@/api.js'
+
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+
+import toast from 'react-hot-toast';
+import { handleError } from '@/utils.js';
+
 export function QuizCard({ data, isSelecting, current, setQuiz, isDisplay }) {
+    const queryClient = useQueryClient()
+
+    const quizDeleteMutation = useMutation({
+        mutationFn: deleteQuiz,
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({ queryKey: ["quizes"] })
+            toast.success("Квиз был успешно удален")
+        },
+        onError: handleError.bind(toast.error),
+    })
+
     return (
-        <div className={"card card-sm bg-base-200 border-base-300 rounded-box border p-4 " + (isDisplay ? "w-full lg:h-100" : "w-md")}>
+        <div className={"card card-md bg-base-200 border-base-300 rounded-box border p-4 " + (isDisplay ? "w-full lg:h-100" : "w-md")}>
             <div className="border-base-300 border-b border-dashed flex items-center justify-between pb-2">
-                <div className="badge p-4 me-3">{data.questionCount}</div>
+                <div className="badge p-4 me-3">{data.questionCount || 0}</div>
                 { isSelecting ? 
                     (
                         <>
@@ -28,7 +46,9 @@ export function QuizCard({ data, isSelecting, current, setQuiz, isDisplay }) {
                                 </summary>
                                 <ul className="menu dropdown-content bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
                                     <li><Link to={"/quiz/"+data.id}>Открыть</Link></li>
-                                    <li><button className="text-error">Удалить</button></li>
+                                    <li><button className="text-error"
+                                        onClick={() => quizDeleteMutation.mutate(data.id)}
+                                    >Удалить</button></li>
                                 </ul>
                             </details>
                         </>

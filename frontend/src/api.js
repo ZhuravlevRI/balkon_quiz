@@ -21,6 +21,15 @@ export async function getMe({ queryKey }) {
     return response.data
 }
 
+export async function getQuizList({ queryKey, pageParam }) {
+    const response = await axios.get(`/quiz/list`, {
+        params: {
+            page: pageParam
+        }
+    })
+    return response.data
+}
+
 export async function postLogin(data) {
     const response = await axios.post('/users/login', data)
     return response.data
@@ -31,7 +40,17 @@ export async function postRegister(data) {
     return response.data
 }
 
-export async function postLogout(data) {
+export async function postLogout() {
     const response = await axios.post('/users/logout')
+    return response.data
+}
+
+export async function postQuizCreate() {
+    const response = await axios.post('/quiz/create')
+    return response.data
+}
+
+export async function deleteQuiz(quizId) {
+    const response = await axios.delete(`/quiz/${quizId}`)
     return response.data
 }

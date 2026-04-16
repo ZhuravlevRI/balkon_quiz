@@ -3,7 +3,14 @@ import uuid
 from sqlmodel import Session, select
 
 from app.core.security import get_password_hash, verify_password
-from app.models import User, UserCreate, Quiz, QuizCreate
+from app.models import (
+    User,
+    UserCreate,
+    Quiz,
+    QuizBase,
+    Question,
+    QuestionCreate,
+)
 
 
 def create_user(*, session: Session, user_create: UserCreate) -> User:
@@ -51,9 +58,74 @@ def authenticate(*, session: Session, username: str, password: str) -> User | No
     return db_user
 
 
-def create_quiz(*, session: Session, quiz_in: QuizCreate, owner_id: uuid.UUID) -> Quiz:
-    db_item = Quiz.model_validate(quiz_in, update={"created_by_id": owner_id})
-    session.add(db_item)
+def create_quiz(*, session: Session, user_id: uuid.UUID) -> Quiz:
+    db_obj = Quiz(created_by_id=user_id)
+    session.add(db_obj)
     session.commit()
-    session.refresh(db_item)
-    return db_item
+    session.refresh(db_obj)
+    return db_obj
+
+
+def get_quiz_list(*, session: Session, user_id: uuid.UUID, page: int) -> list[Quiz]:
+    return session.exec(select(Quiz).where(Quiz.created_by_id == user_id).offset(10 * page).limit(10))
+
+
+def get_quiz_by_id(*, session: Session, user_id: uuid.UUID, quiz_id: uuid.UUID) -> Quiz | None:
+    return session.exec(select(Quiz).where(Quiz.id == quiz_id, Quiz.created_by_id == user_id)).first()
+
+
+def update_quiz(*, session: Session, quiz_id: uuid.UUID, user_id: uuid.UUID, quiz_in: dict) -> Quiz | None:
+    quiz = get_quiz_by_id(session=session, quiz_id=quiz_id, user_id=user_id)
+    if not quiz:
+        return None
+    for field, value in quiz_in.items():
+        if value is not None:
+            setattr(quiz, field, value)
+    session.add(quiz)
+    session.commit()
+    session.refresh(quiz)
+    return quiz
+
+
+def delete_quiz(*, session: Session, quiz_id: uuid.UUID, user_id: uuid.UUID) -> bool:
+    quiz = get_quiz_by_id(session=session, quiz_id=quiz_id, user_id=user_id)
+
+    if not quiz:
+        return False
+    session.delete(quiz)
+    session.commit()
+    return True
+
+
+def create_question(*, session: Session, question_data: QuestionCreate, user_id: uuid.UUID) -> Question | None:
+    quiz = session.exec(
+        select(Quiz).where(
+            Quiz.id == question_data.quiz_id,
+            Quiz.created_by_id == user_id
+        )
+    ).first()
+    if not quiz:
+        return None
+
+    db_obj = Question.model_validate(question_data)
+    session.add(db_obj)
+    session.commit()
+    session.refresh(db_obj)
+    return db_obj
+
+
+def get_questions_by_quiz(*, session: Session, quiz_id: uuid.UUID, user_id: uuid.UUID) -> list[Question] | None:
+    quiz = session.exec(
+        select(Quiz).where(
+            Quiz.id == quiz_id,
+            Quiz.created_by_id == user_id
+        )
+    ).first()
+    if not quiz:
+        return None
+
+    return session.exec(
+        select(Question)
+        .where(Question.quiz_id == quiz_id)
+        .order_by(Question.order)
+    ).all()

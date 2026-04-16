@@ -12,7 +12,7 @@ from jwt.exceptions import InvalidTokenError
 from app.core.db import get_session
 from app.crud import get_user_by_id
 from app.core.config import settings
-from app.models import UserPublic
+from app.models import User, UserPublic
 
 
 SessionDep = Annotated[Session, Depends(get_session)]
@@ -43,7 +43,7 @@ async def get_current_user(
     *,
     session: Session = Depends(get_session),
     token: Optional[str] = Depends(get_token_from_cookie),
-) -> UserPublic:
+) -> User:
 
     cred_exc = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -70,12 +70,14 @@ async def get_current_user(
     if not user:
         raise cred_exc
 
-    return UserPublic(
-        id=user.id,
-        username=user.username,
-        is_active=user.is_active,
-        created_at=user.created_at
-    )
+    return user
+
+    # return UserPublic(
+    #     id=user.id,
+    #     username=user.username,
+    #     is_active=user.is_active,
+    #     created_at=user.created_at
+    # )
 
 
 CurrentUserDep = Annotated[UserPublic, Depends(get_current_user)]

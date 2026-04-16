@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Optional
 
 from sqlalchemy import JSON, Column, DateTime
 from sqlmodel import Field, Relationship, SQLModel
@@ -34,7 +34,9 @@ class User(UserBase, table=True):
         sa_type=DateTime(timezone=True),
     )
 
-    quizzes_created: list["Quiz"] = Relationship(back_populates="created_by")
+    quizzes_created: list["Quiz"] = Relationship(
+        back_populates="created_by",
+        sa_relationship_kwargs={"lazy": "dynamic"})
 
 
 class UserPublic(UserBase):
@@ -42,22 +44,76 @@ class UserPublic(UserBase):
     created_at: datetime | None = None
 
 
+class QuestionBase(SQLModel):
+    quiz_id: uuid.UUID | None = Field(
+        default=None,
+        foreign_key="quizzes.id",
+        ondelete="SET NULL",
+    )
+    order: int
+    title: str
+    img: str | None
+    answer0: str
+    answer1: str
+    answer2: str
+    answer3: str
+    correct: int = Field(ge=0, le=3)
+
+
+class QuestionCreate(QuestionBase):
+    quiz_id: uuid.UUID
+
+
+class QuestionResponse(QuestionBase):
+    id: uuid.UUID
+
+    class Config:
+        from_attributes = True
+
+
+class Question(QuestionBase, table=True):
+    __tablename__ = "questions"
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+    quiz: Optional["Quiz"] = Relationship(back_populates="questions")
+
+
 class QuizBase(SQLModel):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
-    title: str = Field(min_length=1, max_length=255)
-    description: str | None = Field(default=None, max_length=255)
+    title: str = Field(default="Новый квиз", min_length=1, max_length=255)
+    description: str = Field(default="", max_length=255)
 
 
-class QuizCreate(QuizBase):
-    pass
+class QuizCreate(SQLModel):
+    id: uuid.UUID
+
+
+class QuizUpdate(SQLModel):
+    title: str | None = None
+    description: str | None = None
+
+
+class QuizListResponse(QuizBase):
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class QuizWithQuestions(QuizBase):
+    created_at: datetime
+    created_by_id: uuid.UUID | None = None
+    questions: list["QuestionResponse"] = []
+
+    class Config:
+        from_attributes = True
 
 
 class Quiz(QuizBase, table=True):
     __tablename__ = "quizzes"
 
-    questions_json: list[dict[str, Any]] = Field(
-        default_factory=list,
-        sa_column=Column(JSON, nullable=False),
+    questions: list["Question"] = Relationship(
+        back_populates="quiz",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
     )
 
     created_at: datetime = Field(

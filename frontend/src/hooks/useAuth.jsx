@@ -5,6 +5,7 @@ import {
     getMe,
     postLogin,
     postRegister,
+    postLogout,
 } from "@/api.js"
 
 import toast from 'react-hot-toast';
@@ -54,15 +55,28 @@ export const useAuth = () => {
         // },
     })
 
-    // const logout = () => {
-    //     localStorage.removeItem("access_token")
-    //     navigate({ to: "/login" })
-    // }
+    const logout = async () => {
+        const response = await postLogout()
+    }
+
+    const logoutMutation = useMutation({
+        mutationFn: logout,
+        onSuccess: () => {
+            navigate({ to: "/" })
+            queryClient.invalidateQueries({ queryKey: ["currentUser"] })
+            toast.success("Вы успешно вышли из аккаунта");
+            refetch()
+        },
+        onError: handleError.bind(toast.error),
+        // onSettled: () => {
+            // queryClient.invalidateQueries({ queryKey: ["currentUser"] })
+        // },
+    })
 
     return {
         signUpMutation,
         loginMutation,
-        // logout,
+        logoutMutation,
         user,
     }
 }

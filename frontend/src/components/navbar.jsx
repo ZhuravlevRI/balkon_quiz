@@ -14,7 +14,7 @@ export function Navbar() {
         || (matchRoute({ to: '/session' }) && status != "idle")
     )
 
-    const { user } = useAuth()
+    const { user, logoutMutation } = useAuth()
 
     return (
         <div className={"absolute navbar z-50" + (!cleanNavbar && "bg-base-100 shadow-sm")}>
@@ -53,7 +53,9 @@ export function Navbar() {
                                 {user.username}
                             </div>
                             <ul tabIndex="-1" className="menu dropdown-content mt-2 bg-base-100 rounded-box z-1 p-2 shadow-sm">
-                                <li><button className="text-error">Выйти</button></li>
+                                <li><button className="text-error"
+                                    onClick={logoutMutation.mutate}
+                                >Выйти</button></li>
                             </ul>
                         </div>
                     ) : (

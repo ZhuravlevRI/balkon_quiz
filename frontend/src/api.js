@@ -30,3 +30,8 @@ export async function postRegister(data) {
     const response = await axios.post('/users/singin', data)
     return response.data
 }
+
+export async function postLogout(data) {
+    const response = await axios.post('/users/logout')
+    return response.data
+}

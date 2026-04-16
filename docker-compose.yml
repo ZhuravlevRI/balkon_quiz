@@ -17,6 +17,25 @@ services:
       timeout: 5s
       retries: 20
 
+  minio:
+    image: minio/minio:latest
+    container_name: balkon_quiz_minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend:
     build:
       context: .
@@ -25,27 +44,30 @@ services:
     restart: unless-stopped
     working_dir: /app/backend
     env_file:
-      - backend/.env
+      - .env
     environment:
       POSTGRES_SERVER: db
     depends_on:
       db:
+        condition: service_healthy
+      minio:
         condition: service_healthy
     volumes:
       - ./backend:/app/backend
     ports:
       - "8000:8000"
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+  
   frontend:
     restart: always
     build:
       context: frontend/
       dockerfile: Dockerfile
       args:
-        # - VITE_API_URL=https://api.${DOMAIN?Variable not set}
         - NODE_ENV=production
     ports:
       - "8080:8080"
 
 volumes:
   postgres_data:
+  minio_data:

@@ -45,14 +45,8 @@ class UserPublic(UserBase):
 
 
 class QuestionBase(SQLModel):
-    quiz_id: uuid.UUID | None = Field(
-        default=None,
-        foreign_key="quizzes.id",
-        ondelete="SET NULL",
-    )
-    order: int
     title: str
-    img: str | None
+    img: str | None = None
     answer0: str
     answer1: str
     answer2: str
@@ -64,8 +58,20 @@ class QuestionCreate(QuestionBase):
     quiz_id: uuid.UUID
 
 
+class QuestionUpdate(SQLModel):
+    title: str | None = None
+    img: str | None = None
+    answer0: str | None = None
+    answer1: str | None = None
+    answer2: str | None = None
+    answer3: str | None = None
+    correct: int | None = Field(default=None, ge=0, le=3)
+
+
 class QuestionResponse(QuestionBase):
     id: uuid.UUID
+    quiz_id: uuid.UUID
+    order: int
 
     class Config:
         from_attributes = True
@@ -74,42 +80,44 @@ class QuestionResponse(QuestionBase):
 class Question(QuestionBase, table=True):
     __tablename__ = "questions"
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
-    quiz: Optional["Quiz"] = Relationship(back_populates="questions")
+    quiz_id: uuid.UUID = Field(foreign_key="quizzes.id", ondelete="CASCADE")
+    order: int = Field(ge=0)
+    quiz: "Quiz" = Relationship(back_populates="questions")
 
 
 class QuizBase(SQLModel):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
     title: str = Field(default="Новый квиз", min_length=1, max_length=255)
     description: str = Field(default="", max_length=255)
 
 
 class QuizCreate(SQLModel):
-    id: uuid.UUID
+    title: str | None = None
+    description: str | None = None
 
 
 class QuizUpdate(SQLModel):
     title: str | None = None
     description: str | None = None
+    questions: list[QuestionUpdate] | None = None
 
 
-class QuizListResponse(QuizBase):
+class QuizResponse(QuizBase):
+    id: uuid.UUID
     created_at: datetime
+    created_by_id: uuid.UUID
 
     class Config:
         from_attributes = True
 
 
-class QuizWithQuestions(QuizBase):
-    created_at: datetime
-    created_by_id: uuid.UUID | None = None
+class QuizWithQuestions(QuizResponse):
     questions: list["QuestionResponse"] = []
-
-    class Config:
-        from_attributes = True
 
 
 class Quiz(QuizBase, table=True):
     __tablename__ = "quizzes"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
 
     questions: list["Question"] = Relationship(
         back_populates="quiz",

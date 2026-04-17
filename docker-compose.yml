@@ -45,7 +45,7 @@ services:
         - VITE_API_URL=${BACKEND_HOST?Variable not set}${API_V1_STR?Variable not set}
         - NODE_ENV=production
     ports:
-      - "8080:8080"
+      - "8080:80"
 
 volumes:
   postgres_data:

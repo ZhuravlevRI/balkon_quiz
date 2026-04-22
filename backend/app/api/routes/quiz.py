@@ -9,6 +9,7 @@ from app.models import (
     QuizUpdate,
     QuizBase,
     QuizWithQuestions,
+    QuizResponse,
 )
 from app.api.deps import (
     SessionDep,
@@ -34,21 +35,14 @@ def create_quiz(*, session: SessionDep, current_user: CurrentUserDep) -> Any:
 
 @router.get(
     "/list",
-    response_model=list[QuizBase]
+    response_model=list[QuizResponse]
 )
-def list_quiz(*, session: SessionDep, current_user: CurrentUserDep, page: int) -> Any:
+def list_quiz(*, session: SessionDep, current_user: CurrentUserDep, page: int = 0) -> Any:
     """
     List quiz with pagination
     """
-    quizes = crud.get_quiz_list(session=session, user_id=current_user.id, page=page)
-    return [
-        QuizBase(
-            id=el.id,
-            title=el.title,
-            description=el.description
-        )
-        for el in quizes
-    ]
+    quizzes = crud.get_quiz_list(session=session, user_id=current_user.id, page=page)
+    return quizzes
 
 
 @router.get("/{quiz_id}", response_model=QuizWithQuestions)
@@ -57,6 +51,9 @@ def get_quiz(
     session: SessionDep,
     current_user: CurrentUserDep
 ):
+    """
+    Get Quiz
+    """
     quiz = crud.get_quiz_by_id(session=session, user_id=current_user.id, quiz_id=quiz_id)
     if not quiz:
         raise HTTPException(
@@ -73,7 +70,15 @@ def update_quiz(
     session: SessionDep,
     current_user: CurrentUserDep
 ):
-    quiz = crud.update_quiz(session=session, quiz_id=quiz_id, user_id=current_user.id, quiz_in=quiz_in.model_dump(exclude_unset=True))
+    """
+    Update Quiz
+    """
+    quiz = crud.update_quiz(
+        session=session,
+        quiz_id=quiz_id,
+        user_id=current_user.id,
+        quiz_in=quiz_in,
+    )
     if not quiz:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

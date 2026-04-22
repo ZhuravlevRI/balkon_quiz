@@ -72,7 +72,7 @@ def login_user(
     return AuthResponse(is_auth_good=True)
 
 
-@router.post("/user/logout")
+@router.post("/logout")
 def user_logout(
     response: Response,
     session: SessionDep,

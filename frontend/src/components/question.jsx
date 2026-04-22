@@ -67,8 +67,9 @@ export function Question({index, data, setQuestionData, removeQuestion, insertQu
                             <div className="divider my-0"></div>
                             <div>
                                 <div className="flex flex-col gap-1">
-                                    {data.answers.map((answer, i) => (
-                                        <QuestionAnswer key={i} index={i} answer={answer} correct={i==data.correct}
+                                    {[0,1,2,3].map((i) => {
+                                        const answer = data[`answer${i}`]
+                                        return <QuestionAnswer key={i} index={i} answer={answer} correct={i==data.correct}
                                             setCorrect={(correct) => setQuestionData(
                                                 index,
                                                 {
@@ -76,20 +77,13 @@ export function Question({index, data, setQuestionData, removeQuestion, insertQu
                                                     correct: i
                                                 }
                                             )}
-                                            setAnswer={(answerData) => setQuestionData(
-                                                index,
-                                                {
-                                                    ...data,
-                                                    answers: data.answers.map((answer, j) => {
-                                                        if(j==i) {
-                                                            return answerData;
-                                                        }
-                                                        return answer;
-                                                    })
-                                                }
-                                            )}
+                                            setAnswer={(answerData) => {
+                                                let newData = { ...data }
+                                                newData[`answer${i}`] = answerData
+                                                setQuestionData(index, newData)
+                                            }}
                                         />
-                                    ))}
+                                    })}
                                 </div>
                             </div>
                         </div>

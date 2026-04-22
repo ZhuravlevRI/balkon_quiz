@@ -1,5 +1,14 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { 
+    getQuiz,
+    putQuiz
+} from "@/api.js"
+
+import toast from 'react-hot-toast';
+import { handleError } from '@/utils.js';
 
 import { Question } from '@/components/question.jsx'
 
@@ -29,17 +38,48 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 
 function RouteComponent() {
+    const { quizId } = Route.useParams()
+    const queryClient = useQueryClient()
+
     const tempData = {
         id: 1,
         title: "Тестовый квиз",
         description: "Квиз для тестирования работоспособности приложения",
         questions: [],
     }
-    const [data, setData] = useState(tempData)
-    const [idCount, setIdCount] = useState(tempData.questions.length)
+
+
+    const {
+        data,
+        status
+    } = useQuery({
+        queryKey: ["quiz", { quizId }],
+        queryFn: getQuiz,
+    })
+
+    function setData(data) {
+        queryClient.setQueryData(["quiz", { quizId }], data)
+    }
+
+    const [idCount, setIdCount] = useState(100000)
 
     const [isDirty, setIsDirty] = useState(false)
-    const [dataOld, setDataOld] = useState(data)
+    const [dataOld, setDataOld] = useState(false)
+
+    if(status == 'success') {
+        if(dataOld == false) {
+            setDataOld(data) // this sucks
+        }
+    }
+
+    const putQuizMutation = useMutation({
+        mutationFn: (data) => putQuiz(quizId, data),
+        onSuccess: (data, context) => {
+            setIsDirty(false)
+            setDataOld(context)
+        },
+        onError: handleError.bind(toast.error),
+    })
 
     function setQuestionData(index, questionData) {
         setIsDirty(true)
@@ -82,8 +122,11 @@ function RouteComponent() {
         return {
             id: idCount,
             title: "",
-            image: undefined,
-            answers: ["", "", "", ""],
+            img: undefined,
+            answer0: "",
+            answer1: "",
+            answer2: "",
+            answer3: "",
             correct: 0
         }
     }
@@ -131,11 +174,8 @@ function RouteComponent() {
                         Отменить
                     </button>
                     <button className="btn btn-primary"
-                        onClick={() => {
-                            setIsDirty(false)
-                            setDataOld(data)
-                        }
-                    }>
+                        onClick={() => putQuizMutation.mutate(data)}
+                    >
                         Сохранить
                     </button>
                 </div>
@@ -147,63 +187,71 @@ function RouteComponent() {
                 <br/>
                 <br/>
             </div>
-            <div className="card bg-base-200 card-border border-base-300 card-sm p-5 gap-1 w-full">
-                <input type="text" placeholder="Название квиза" className="input text-2xl w-full" 
-                    value={data.title} onChange={e => {
-                        setIsDirty(true)
-                        setData({
-                            ...data,
-                            title: e.target.value
-                        })}
-                    }
-                />
-                <textarea type="text" placeholder="Описание" className="w-full textarea text-xl"
-                    value={data.description} onChange={e => {
-                        setIsDirty(true)
-                        setData({
-                            ...data,
-                            description: e.target.value
-                        })}
-                    }
-                />
-                {/* <div className="card-body"> */}
-                {/* </div> */}
-            </div>
+            {(status === 'pending') ? (
+                <span className="loading loading-spinner loading-xl"></span>
+            ) : (status === 'error') ? (
+                <p className="text-center text-2xl"> Не получилось загрузить квиз </p>
+            ) : (
+                <>
+                    <div className="card bg-base-200 card-border border-base-300 card-sm p-5 gap-1 w-full">
+                        <input type="text" placeholder="Название квиза" className="input text-2xl w-full" 
+                            value={data.title} onChange={e => {
+                                setIsDirty(true)
+                                setData({
+                                    ...data,
+                                    title: e.target.value
+                                })}
+                            }
+                        />
+                        <textarea type="text" placeholder="Описание" className="w-full textarea text-xl"
+                            value={data.description} onChange={e => {
+                                setIsDirty(true)
+                                setData({
+                                    ...data,
+                                    description: e.target.value
+                                })}
+                            }
+                        />
+                        {/* <div className="card-body"> */}
+                        {/* </div> */}
+                    </div>
 
-            <div className="w-full">
-                <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={handleDragEnd}
-                    modifiers={[restrictToVerticalAxis, restrictToParentElement]}
-                >
-                    <SortableContext items={data.questions} strategy={verticalListSortingStrategy}>
-                        {data.questions.map((question, i) => (
-                            <Question
-                                key={question.id}
-                                index={i}
-                                data={question} 
-                                setQuestionData={setQuestionData}
-                                removeQuestion={removeQuestion}
-                                insertQuestion={() => insertQuestion(i, emptyQuestion())}
-                            />
-                        ))}
-                    </SortableContext>
-                </DndContext>
-            </div>
+                    <div className="w-full">
+                        <DndContext
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragEnd={handleDragEnd}
+                            modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+                        >
+                            <SortableContext items={data.questions} strategy={verticalListSortingStrategy}>
+                                {data.questions.map((question, i) => (
+                                    <Question
+                                        key={question.id}
+                                        index={i}
+                                        data={question} 
+                                        setQuestionData={setQuestionData}
+                                        removeQuestion={removeQuestion}
+                                        insertQuestion={() => insertQuestion(i, emptyQuestion())}
+                                    />
+                                ))}
+                            </SortableContext>
+                        </DndContext>
+                    </div>
 
-            <div className="flex justify-center">
-                <button className="btn btn-primary rounded-full p-4 mt-4"
-                    onClick={() => {
-                        insertQuestion(
-                            data.questions.length,
-                            emptyQuestion()
-                        )
-                    }}
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6"> <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /> </svg>
-                </button>
-            </div>
+                    <div className="flex justify-center">
+                        <button className="btn btn-primary rounded-full p-4 mt-4"
+                            onClick={() => {
+                                insertQuestion(
+                                    data.questions.length,
+                                    emptyQuestion()
+                                )
+                            }}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6"> <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /> </svg>
+                        </button>
+                    </div>
+                </>
+            )}
         </div>
         <br/>
         <br/>

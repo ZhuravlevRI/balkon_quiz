@@ -16,7 +16,6 @@ const toBase64 = file => new Promise((resolve, reject) => {
 // API REQUESTS
 
 export async function getMe({ queryKey }) {
-    // const [_key, { userId }] = queryKey
     const response = await axios.get(`/users/me`)
     return response.data
 }
@@ -27,6 +26,12 @@ export async function getQuizList({ queryKey, pageParam }) {
             page: pageParam
         }
     })
+    return response.data
+}
+
+export async function getQuiz({ queryKey }) {
+    const [_key, { quizId }] = queryKey
+    const response = await axios.get(`/quiz/${quizId}`)
     return response.data
 }
 
@@ -47,6 +52,11 @@ export async function postLogout() {
 
 export async function postQuizCreate() {
     const response = await axios.post('/quiz/create')
+    return response.data
+}
+
+export async function putQuiz(quizId, data) {
+    const response = await axios.put(`/quiz/${quizId}`, data)
     return response.data
 }
 

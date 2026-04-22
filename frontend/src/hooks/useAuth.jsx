@@ -63,10 +63,9 @@ export const useAuth = () => {
         mutationFn: logout,
         onSuccess: () => {
             navigate({ to: "/" })
-            queryClient.setQueryData(["currentUser"], 1)
+            queryClient.removeQueries(["currentUser"])
             queryClient.invalidateQueries({ queryKey: ["currentUser"] })
-            queryClient.setQueryData(["currentUser"], 1)
-            // refetch()
+            queryClient.removeQueries(["currentUser"])
             toast.success("Вы успешно вышли из аккаунта");
         },
         onError: handleError.bind(toast.error),

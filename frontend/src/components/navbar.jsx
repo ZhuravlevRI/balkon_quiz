@@ -34,7 +34,7 @@ export function Navbar() {
                 )}
                 <Link to="/" className="btn btn-ghost text-xl">Квиззер</Link>
             </div>
-            {(!cleanNavbar && (user && user != 1)) && (
+            {(!cleanNavbar && user) && (
             <div className="navbar-center hidden lg:flex">
                 <ul className="menu menu-horizontal px-1 gap-1">
                     <li><Link to="/quiz" className="[&.active]:menu-active">Квизы</Link></li>
@@ -44,7 +44,7 @@ export function Navbar() {
             )}
             {!cleanNavbar && (
                 <div className="navbar-end">
-                    {(user && user != 1) ? (
+                    {user ? (
                         <div className="dropdown dropdown-end">
                             <div tabIndex={0} role="button" className="btn btn-ghost px-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">

@@ -34,7 +34,7 @@ export function Navbar() {
                 )}
                 <Link to="/" className="btn btn-ghost text-xl">Квиззер</Link>
             </div>
-            {!cleanNavbar && (
+            {(!cleanNavbar && (user && user != 1)) && (
             <div className="navbar-center hidden lg:flex">
                 <ul className="menu menu-horizontal px-1 gap-1">
                     <li><Link to="/quiz" className="[&.active]:menu-active">Квизы</Link></li>

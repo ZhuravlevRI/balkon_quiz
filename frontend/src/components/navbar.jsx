@@ -44,7 +44,7 @@ export function Navbar() {
             )}
             {!cleanNavbar && (
                 <div className="navbar-end">
-                    {user ? (
+                    {(user && user != 1) ? (
                         <div className="dropdown dropdown-end">
                             <div tabIndex={0} role="button" className="btn btn-ghost px-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">

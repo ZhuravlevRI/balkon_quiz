@@ -91,8 +91,7 @@ class QuizBase(SQLModel):
 
 
 class QuizCreate(SQLModel):
-    title: str | None = None
-    description: str | None = None
+    id: uuid.UUID
 
 
 class QuizUpdate(SQLModel):

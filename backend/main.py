@@ -6,6 +6,7 @@ from starlette.middleware.cors import CORSMiddleware
 from app.api.main import api_router
 from app.core.config import settings
 from app.core.db import init_db
+from app.core.minio import init_minio
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -20,6 +21,7 @@ app = FastAPI(
 @app.on_event("startup")
 def on_startup():
     init_db()
+    init_minio()
 
 
 if settings.all_cors_origins:

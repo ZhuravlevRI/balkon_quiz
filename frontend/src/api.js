@@ -64,3 +64,54 @@ export async function deleteQuiz(quizId) {
     const response = await axios.delete(`/quiz/${quizId}`)
     return response.data
 }
+
+// session
+
+export async function getSessionStatus({ queryKey }) {
+    const response = await axios.get(`/session/status`)
+    return response.data
+}
+
+export async function getSessionPlayerList({ queryKey }) {
+    const response = await axios.get(`/session/player/list`)
+    return response.data
+}
+
+export async function postCreateSession() {
+    const response = await axios.post(`/session/create`)
+    return response.data
+}
+
+export async function deleteSession() {
+    const response = await axios.delete(`/session/`)
+    return response.data
+}
+
+export async function postSessionQuiz(quiz) {
+    const response = await axios.post(`/session/quiz`, null, {
+        params: {
+            quiz_id: quiz,
+        }
+    })
+    return response.data
+}
+
+export async function postSessionPlayerKick(player) {
+    const response = await axios.post(`/session/player/${player}/kick`)
+    return response.data
+}
+
+export async function postJoinSession(code, username) {
+    const response = await axios.post(`/session/join`, null, {
+        params: {
+            session_code: code,
+            username: username
+        }
+    })
+    return response.data
+}
+
+export async function postSessionProgress() {
+    const response = await axios.post(`/session/progress`)
+    return response.data
+}

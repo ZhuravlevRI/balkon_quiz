@@ -171,14 +171,35 @@ def delete_gamesession(*,
 @router.get("/player/list")
 def get_players_list(*,
                      db_session: DBSessionDep,
-                     current_user: CurrentUserDep
+                     current_user: OptionalCurrentUserDep,
+                     current_player: OptionalCurrentPlayerDep,
                      ) -> Any:
-    gamesession = crud.get_active_gamesession_by_user(db_session=db_session, user_id=current_user.id)
-
+    if current_user:
+        user_id = current_user.id
+        gamesession = crud.get_active_gamesession_by_user(
+            db_session=db_session,
+            user_id=user_id
+        )
+    elif current_player:
+        try:
+            player = crud.get_player_by_id(
+                db_session=db_session,
+                player_id=current_player.id)
+            gamesession = player.current_gamesession
+        except (ValueError, IndexError):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid player session cookie"
+            )
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required"
+        )
     players = crud.get_players_by_gamesession(
         db_session=db_session,
         gamesession_id=gamesession.id,
-        user_id=current_user.id
+        user_id=gamesession.created_by_id
     )
 
     return [
@@ -202,7 +223,7 @@ def kick_player(*,
 
     success = crud.kick_player(
         db_session=db_session,
-        code=gamesession.code,
+        session_code=gamesession.code,
         player_id=player_id
     )
 

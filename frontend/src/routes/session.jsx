@@ -9,15 +9,26 @@ import { statusAtom } from '@/atoms.jsx'
 
 import {
     useMutation,
-    useInfiniteQuery
+    useInfiniteQuery,
+    useQuery,
+    useQueryClient
 } from '@tanstack/react-query'
 
 import { 
-    getQuizList
+    getQuizList,
+    postCreateSession,
+    getSessionStatus,
+    deleteSession,
+    postSessionQuiz,
+    getSessionPlayerList,
+    postSessionPlayerKick,
+    postSessionProgress,
 } from "@/api.js"
 
 import toast from 'react-hot-toast';
 import { handleError } from '@/utils.js';
+
+import { useAuth } from '@/hooks/useAuth.jsx'
 
 export const Route = createFileRoute('/session')({
   component: RouteComponent,
@@ -35,31 +46,113 @@ function Anwser({index, answer, pick, picked, correct}) {
 }
 
 function RouteComponent() {
-    const users = [
-        {name: "Лазарев Николай Владиславович", score: 100},
-        {name: "Трифонова София Львовна", score: 100},
-        {name: "Васильев Матвей Артемьевич", score: 100},
-        {name: "Романов Александр Артёмович", score: 100},
-        {name: "Максимова Софья Ярославовна", score: 100},
-        {name: "Черкасова Мария Ильинична", score: 100},
-        {name: "Титова Полина Артёмовна", score: 100},
-        {name: "Потапова Кира Станиславовна", score: 100},
-        {name: "Денисов Артём Степанович", score: 100},
-        {name: "Воробьева Кира Максимовна", score: 100},
-        {name: "Максимова Софья Ярославовна", score: 100},
-        {name: "Черкасова Мария Ильинична", score: 100},
+    const queryClient = useQueryClient()
+    const { user } = useAuth()
 
-        {name: "Титова Полина Артёмовна", score: 100},
-        {name: "Потапова Кира Станиславовна", score: 100},
-        {name: "Денисов Артём Степанович", score: 100},
-        {name: "Воробьева Кира Максимовна", score: 100},
-        {name: "Максимова Софья Ярославовна", score: 100},
-        {name: "Черкасова Мария Ильинична", score: 100},
-    ];
+    // const users = [
+    //     {name: "Лазарев Николай Владиславович", score: 100},
+    //     {name: "Трифонова София Львовна", score: 100},
+    //     {name: "Васильев Матвей Артемьевич", score: 100},
+    //     {name: "Романов Александр Артёмович", score: 100},
+    //     {name: "Максимова Софья Ярославовна", score: 100},
+    //     {name: "Черкасова Мария Ильинична", score: 100},
+    //     {name: "Титова Полина Артёмовна", score: 100},
+    //     {name: "Потапова Кира Станиславовна", score: 100},
+    //     {name: "Денисов Артём Степанович", score: 100},
+    //     {name: "Воробьева Кира Максимовна", score: 100},
+    //     {name: "Максимова Софья Ярославовна", score: 100},
+    //     {name: "Черкасова Мария Ильинична", score: 100},
+    //
+    //     {name: "Титова Полина Артёмовна", score: 100},
+    //     {name: "Потапова Кира Станиславовна", score: 100},
+    //     {name: "Денисов Артём Степанович", score: 100},
+    //     {name: "Воробьева Кира Максимовна", score: 100},
+    //     {name: "Максимова Софья Ярославовна", score: 100},
+    //     {name: "Черкасова Мария Ильинична", score: 100},
+    // ];
+
+    const {
+        data: users,
+        usersRefetch,
+    } = useQuery({
+        queryKey: ['players'],
+        queryFn: getSessionPlayerList,
+        refetchInterval: 5_000, // every 5 seconds
+        retry: false
+    })
+
+    const {
+        data: quizPoll,
+        status: pollStatus,
+        refetch: refetchStatus
+    } = useQuery({
+        queryKey: ['prices'],
+        queryFn: getSessionStatus,
+        refetchInterval: 2_000, // every 5 seconds
+        retry: false
+    })
+    console.log(quizPoll)
+    // console.log(pollStatus)
+
+    const [status, setStatus] = useAtom(statusAtom);
+    const [pickedAnswer, setPickedAnswer] = useState(undefined);
+
+    if(quizPoll) {
+        if(quizPoll.status != "idle" && status == "idle") {
+            setStatus(1)
+        }
+        if(quizPoll.status == "idle" && status != "idle") {
+            setStatus("idle")
+        }
+        if(!(quizPoll?.status == "question" || quizPoll?.status == "question_with_answers") && pickedAnswer != undefined) {
+            setPickedAnswer(undefined)
+        }
+    }
+
+    const postCreateSessionMutation = useMutation({
+        mutationFn: (data) => postCreateSession(),
+        onError: handleError.bind(toast.error),
+        onSuccess: () => {
+            refetchStatus()
+        }
+    })
+
+    const deleteSessionMutation = useMutation({
+        mutationFn: (data) => deleteSession(),
+        onError: handleError.bind(toast.error),
+        onSuccess: () => {
+            refetchStatus()
+        }
+    })
+
+    const postSessionPlayerKickMutation = useMutation({
+        mutationFn: (data) => postSessionPlayerKick(data.id),
+        onError: handleError.bind(toast.error),
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({ queryKey: ["players"] })
+        }
+    })
+
+    const postSessionQuizMutation = useMutation({
+        mutationFn: (data) => postSessionQuiz(data.id),
+        onError: handleError.bind(toast.error),
+        onSuccess: (data, context) => {
+            setQuiz(context)
+            setIsSelectingQuiz(false)
+        }
+    })
+
+    const postSessionProgressMutation = useMutation({
+        mutationFn: (data) => postSessionProgress(),
+        onError: handleError.bind(toast.error),
+        onSuccess: () => {
+            refetchStatus()
+        }
+    })
 
     const {
         data: quizesData,
-        error,
+        error: quizesError,
         fetchNextPage,
         hasNextPage,
         isFetching,
@@ -76,14 +169,9 @@ function RouteComponent() {
             return lastPageParam + 1;
         },
     })
-    console.log(quizesData, quizesStatus, error, hasNextPage, isFetching)
 
     const [isSelectingQuiz, setIsSelectingQuiz] = useState(false);
     const [quiz, setQuiz] = useState(undefined);
-
-    // const [status, setStatus] = useState("idle");
-    // const [status, setStatus] = useState("question");
-    const [status, setStatus] = useAtom(statusAtom);
 
     const [question, setQuestion] = useState({
         id: 1,
@@ -98,15 +186,33 @@ function RouteComponent() {
         correct: undefined
     });
 
-    const [pickedAnswer, setPickedAnswer] = useState(undefined);
 
     function pickAnswer(index) {
         setPickedAnswer(index)
     }
 
+
     return (
         <div>
-            {(status == "idle") ? (
+            {(user && pollStatus == "error") ? (
+                <div className="flex items-center justify-center text-center h-dvh">
+                    <div className="card bg-base-200 card-border border-base-300 card-sm outline-none ">
+                        <div className="card-body gap-3 p-5">
+                            <button className="btn btn-primary"
+                                onClick={postCreateSessionMutation.mutate}
+                            >Создать сессию</button>
+                        </div>
+                    </div>
+                </div>
+            ) : (!user && pollStatus == "error") ? (
+                <div className="flex items-center justify-center text-center h-dvh">
+                    <div className="card bg-base-200 card-border border-base-300 card-sm outline-none">
+                        <div className="card-body gap-3 p-5">
+                            <p className="text-xl">Нету доступа к сессии</p>
+                        </div>
+                    </div>
+                </div>
+            ) : (quizPoll?.status == "idle") ? (
                 <div className="flex flex-col text-center h-dvh max-h-dvh">
                     <div>
                         <br/>
@@ -119,24 +225,35 @@ function RouteComponent() {
                         <div className="">
                             <div className="flex justify-center">
                                 <h1 className="text-[6em] sm:text-[11em] bg-base-200 px-6 rounded-box font-semibold">
-                                    A3sE5
+                                    {quizPoll.code}
                                 </h1>
                             </div>
                             <br/>
                             <div className="flex justify-center gap-5">
-                                <button className="btn btn-neutral"
-                                onClick={() => setIsSelectingQuiz(!isSelectingQuiz)}>
-                                    Выбрать квиз
-                                </button>
-                                <button className="btn btn-primary" disabled={quiz == undefined}
-                                onClick={() => {
-                                        // document.getElementById("root").requestFullscreen()
-                                        setStatus("question")
-                                        setQuiz(undefined)
-                                        setPickedAnswer(undefined)
-                                }}>
-                                    Запустить квиз
-                                </button>
+                                {(user) ? (
+                                    <>
+                                        <button className="btn btn-neutral"
+                                        onClick={() => setIsSelectingQuiz(!isSelectingQuiz)}>
+                                        Выбрать квиз
+                                        </button>
+                                        <button className="btn btn-primary" disabled={quiz == undefined}
+                                        onClick={() => {
+                                            // document.getElementById("root").requestFullscreen()
+                                            // setStatus("question")
+                                            setQuiz(undefined)
+                                            setPickedAnswer(undefined)
+                                            postSessionProgressMutation.mutate()
+                                        }}>
+                                        Запустить квиз
+                                        </button>
+                                        <button className="btn btn-error"
+                                        onClick={deleteSessionMutation.mutate}>
+                                        Завершить сессию
+                                        </button>
+                                    </>
+                                ) : (
+                                    <></>
+                                )}
                             </div>
                             {quiz && (
                                 <div className="flex justify-center mt-6 text-left mx-5 lg:mx-0">
@@ -161,7 +278,7 @@ function RouteComponent() {
                                             <span className="loading loading-spinner loading-xl"></span>
                                         </div>
                                     ) : quizesStatus == 'error' ? (
-                                        <p className="text-center text-2xl"> Ошибка: {error.message} </p>
+                                        <p className="text-center text-2xl"> Ошибка: {quizesError.message} </p>
                                     ) : quizesData?.pages[0].length == 0 ? (
                                         <p className="text-center text-2xl"> Нет квизов </p>
                                     ) : (
@@ -175,8 +292,8 @@ function RouteComponent() {
                                                                 isSelecting={true}
                                                                 current={e.id == quiz?.id}
                                                                 setQuiz={() => {
-                                                                    setQuiz(e)
-                                                                    setIsSelectingQuiz(false)
+                                                                    console.log("aoeuou", e)
+                                                                    postSessionQuizMutation.mutate(e)
                                                                 }}
                                                             />
                                                         ))}
@@ -207,7 +324,10 @@ function RouteComponent() {
                                 </div>
                             ) : (
                                     <div className="flex flex-wrap gap-3 px-8 lg:overflow-y-scroll">
-                                        {users.map((e, i) => <UserPanel key={i} user={e} scoreless admin={true}/>)}
+                                    {(users) && (
+                                            users.map((e, i) => <UserPanel key={i} user={e} scoreless admin={!!user} kick={() => postSessionPlayerKickMutation.mutate(e)}/>)
+                                        )
+                                    }
                                     </div>
                                 )
                             }
@@ -215,7 +335,7 @@ function RouteComponent() {
                         </div>
                     </div>
                 </div>
-                ) : (status == "question") ? (
+                ) : (quizPoll?.status == "question" || quizPoll?.status == "question_with_answers" ) ? (
                     <div className="h-dvh flex pb-4">
                         <div className="mx-auto max-w-7xl px-3 flex flex-col justify-between grow gap-5">
                             <div>
@@ -235,7 +355,7 @@ function RouteComponent() {
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                                                 </svg>
                                                 <h1 className="text-2xl pe-1 font-semibold">
-                                                    5/10
+                                                    0/{quizPoll.players_count}
                                                 </h1>
                                             </div>
                                         </div>
@@ -243,56 +363,55 @@ function RouteComponent() {
                                 </div>
                                 <div className="text-center card bg-base-200 border border-base-300 p-5 pe-2 overflow-y-scroll shadow-sm max-h-80">
                                     <h1 className="text-2xl md:text-4xl px-6 font-semibold">
-                                        {question.title}
+                                        {quizPoll.question.title}
                                     </h1>
                                 </div>
                             </div>
                             <div className="flex justify-center max-w h-100">
-                                <img className="object-contain" src="dummyquestion.jpg"/>
+                                {/* <img className="object-contain" src="dummyquestion.jpg"/> */}
                             </div>
                             <div className="flex flex-col gap-4">
                                 <div className="flex flex-wrap gap-3 justify-center">
-                                    {question.answers.map((answer, i) => (
+                                    {quizPoll.question.answers.map((answer, i) => (
                                         <Anwser key={i} answer={answer} index={i} pick={() => {
-                                            if(question.correct == undefined) pickAnswer(i)
+                                            if(quizPoll.correct_answer == undefined) pickAnswer(i)
                                         }}
-                                            picked={pickedAnswer == i} correct={question.correct}
+                                            picked={pickedAnswer == i} correct={quizPoll.correct_answer}
                                         />
                                     ))}
                                 </div>
-                                <div className="flex justify-center">
-                                    <div className="flex flex-row items-center justify-center card bg-base-200 p-3 gap-3">
-                                        <button className="btn btn-neutral"
-                                            onClick={() => {
-                                                setStatus("idle")
-                                                setQuestion({...question, correct: undefined})
-                                            }}>Завершить квиз</button>
-                                        <div className="divider divider-horizontal mx-1"></div>
-                                        {(question.correct == undefined) ? (
-                                            <button className="btn btn-primary"
+                                {(user) ? (
+                                    <div className="flex justify-center">
+                                        <div className="flex flex-row items-center justify-center card bg-base-200 p-3 gap-3">
+                                            <button className="btn btn-neutral"
                                                 onClick={() => {
-                                                    setQuestion({
-                                                        ...question,
-                                                        correct: 3
-                                                    })
-                                                }}
-                                            >Завершить вопрос</button>
-                                        ) : (
-                                            <button className="btn btn-primary"
-                                                onClick={() => setStatus("ranking")}
-                                            >Следующий вопрос</button>
-                                        )}
+                                                    setStatus("idle")
+                                                    setQuestion({...question, correct: undefined})
+                                                }}>Завершить квиз</button>
+                                            <div className="divider divider-horizontal mx-1"></div>
+                                            {(question.correct_answer == undefined) ? (
+                                                <button className="btn btn-primary"
+                                                    onClick={() => {
+                                                        postSessionProgressMutation.mutate()
+                                                    }}
+                                                >Завершить вопрос</button>
+                                            ) : (
+                                                <button className="btn btn-primary"
+                                                    onClick={() => postSessionProgressMutation.mutate()}
+                                                >Следующий вопрос</button>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
+                                ) : ( <></> )}
                             </div>
                         </div>
                     </div>
-                ) : (status == "ranking") ? (
+                ) : (quizPoll?.status == "ranking") ? (
                     <div className="h-dvh max-h-dvh flex">
                         <div className="grow flex flex-col text-center gap-5 py-15">
-                            <div className="flex grow justify-center">
+                            <div className="flex justify-center">
                                 <div className="text-center card outline-none card-sm bg-base-200 border border-base-300 p-4 mx-4">
-                                    <h1 className="text-5xl">Результаты вопроса {question.id}/10</h1>
+                                    <h1 className="text-5xl">Результаты вопроса {quizPoll.question_number+1}/{quizPoll.total_questions}</h1>
                                 </div>
                             </div>
                             <div className="flex flex-row-reverse text-center gap-5 justify-center flex-wrap grow min-h-0 content-start">
@@ -305,7 +424,7 @@ function RouteComponent() {
                                     {/* <h1 className="text-5xl">aontsehuaosnteu</h1> */}
                                 {/* </div> */}
                                 <div className="flex flex-col text-center gap-5 justify-center">
-                                    <UserPanel user={{name: "Текующий игрок", score: 100}} index={5}/>
+                                    <UserPanel user={{username: "Текщий игрок", score: 0}} index={1}/>
                                     <div className="flex flex-row items-center justify-center card bg-base-200 p-3 gap-3">
                                         <button className="btn btn-neutral"
                                             onClick={() => {
@@ -314,21 +433,21 @@ function RouteComponent() {
                                             }}>Завершить квиз</button>
                                         <div className="divider divider-horizontal mx-1"></div>
                                         <button className="btn btn-primary"
-                                            onClick={() => setStatus("leaderboard")}
+                                            onClick={() => postSessionProgressMutation.mutate()}
                                         >Следующий вопрос</button>
                                     </div>
                                 </div>
                                 <div className="lg:max-h-full flex flex-col ">
                                     <div className="flex flex-col card border rounded-box border-base-200 overflow-y-scroll mx-2">
                                         <div className="flex flex-col gap-3 px-4 lg:px-8 card-body">
-                                            {users.map((e, i) => <UserPanel user={e} key={i} index={i+1} admin={true}/>)}
+                                            {users.map((e, i) => <UserPanel user={e} key={i} index={i+1} admin={!!user}/>)}
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                ) : (status == "leaderboard") ? (
+                ) : (quizPoll?.status == "leaderboard") ? (
                     <div className="grow flex flex-col text-center gap-5 py-6">
                         <div className="flex grow justify-center">
                             <div className="text-center card outline-none card-sm bg-base-200 border border-base-300 p-4 mx-4">
@@ -337,8 +456,8 @@ function RouteComponent() {
                         </div>
                         <div className="flex justify-center">
                                     <div className="grow flex max-w-3xl justify-center gap-5 items-end h-75 md:h-125 mx-3">
-                                        <div className="flex flex-col gap-3 h-17/20">
-                                            <h1 className="text-md md:text-2xl">Лазарев Николай Владиславович</h1>
+                                        <div className="flex flex-col gap-3 h-17/20 w-1/3">
+                                            <h1 className="text-md md:text-2xl">Игрок 1</h1>
                                             <div className="grow flex flex-col bg-slate-400 rounded-box justify-between items-center p-3 pb-6">
                                                 <div className="text-3xl md:text-5xl">
                                                     300
@@ -348,8 +467,8 @@ function RouteComponent() {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="flex flex-col gap-3 h-full">
-                                            <h1 className="text-md md:text-2xl">Потапова Кира Станиславовна</h1>
+                                        <div className="flex flex-col gap-3 h-full w-1/3">
+                                            <h1 className="text-md md:text-2xl">Игрок 2</h1>
                                             <div className="grow flex flex-col bg-yellow-500 rounded-box justify-between items-center p-3 pb-6">
                                                 <div className="text-3xl md:text-5xl">
                                                     500
@@ -359,8 +478,8 @@ function RouteComponent() {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="flex flex-col gap-3 h-7/10">
-                                            <h1 className="text-md md:text-2xl">Денисов Артём Степанович</h1>
+                                        <div className="flex flex-col gap-3 h-7/10 w-1/3">
+                                            <h1 className="text-md md:text-2xl">Игрок 3</h1>
                                             <div className="grow flex flex-col bg-yellow-700 rounded-box justify-between items-center p-3 pb-6">
                                                 <div className="text-3xl md:text-5xl">
                                                     200
@@ -374,22 +493,23 @@ function RouteComponent() {
                         </div>
                         <div className="flex grow justify-center">
                             <div className="flex flex-col text-center gap-5 justify-center">
-                                <UserPanel user={{name: "Текующий игрок", score: 100}} index={5}/>
+                                <UserPanel user={{username: "Текущий игрок", score: 0}} index={1}/>
                             </div>
                         </div>
                         <div className="flex grow justify-center">
                             <div className="flex flex-col gap-5">
                                 <div className="flex flex-col card border rounded-box border-base-200 overflow-y-scroll mx-2">
                                     <div className="flex flex-col gap-3 px-4 lg:px-8 card-body">
-                                        {users.map((e, i) => <UserPanel user={e} key={i} index={i+1} admin={true}/>)}
+                                        {users.map((e, i) => <UserPanel user={e} key={i} index={i+1} admin={!!user}/>)}
                                     </div>
                                 </div>
                                         <div className="flex justify-center">
                                             <div className="flex flex-row items-center justify-center card bg-base-200 p-3 gap-3">
                                                 <button className="btn btn-neutral"
                                                     onClick={() => {
-                                                        setStatus("idle")
-                                                        setQuestion({...question, correct: undefined})
+                                                        // setStatus("idle")
+                                                        // setQuestion({...question, correct: undefined})
+                                                        postSessionProgressMutation.mutate()
                                                     }}>Завершить квиз</button>
                                             </div>
                                         </div>
@@ -397,7 +517,15 @@ function RouteComponent() {
                         </div>
                     </div>
                 ) : (
-                    <></>
+                        <div className="flex items-center justify-center text-center h-dvh">
+                            <div className="card bg-base-200 card-border border-base-300 card-sm">
+                                <div className="card-body gap-3 p-5">
+                                    <button className="btn btn-primary"
+                                        onClick={postCreateSessionMutation.mutate}
+                                    >Создать сессию</button>
+                                </div>
+                            </div>
+                        </div>
                 )
             }
         </div>

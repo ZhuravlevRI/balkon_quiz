@@ -108,7 +108,8 @@ def get_session_status(*,
         "question_number": gamesession.question_number,
         "players_count": players_count,
         "score": player_score,
-        "total_questions": len(quiz.questions) if quiz else 0
+        "total_questions": len(quiz.questions) if quiz else 0,
+        "quiz_id": gamesession.quiz_id,
     }
     if gamesession.status == GameSessionStatusEnum.QUESTION:
         if quiz and gamesession.question_number < len(quiz.questions):
@@ -127,6 +128,17 @@ def get_session_status(*,
     elif gamesession.status == GameSessionStatusEnum.QUESTION_WITH_ANSWERS:
         if quiz and gamesession.question_number < len(quiz.questions):
             question = quiz.questions[gamesession.question_number]
+            response_data["question"] = {
+                "id": question.id,
+                "title": question.title,
+                "img": question.img,
+                "answers": [
+                    question.answer0,
+                    question.answer1,
+                    question.answer2,
+                    question.answer3
+                ]
+            }
             response_data["correct_answer"] = question.correct
     elif gamesession.status == GameSessionStatusEnum.RANKING:
         pass
@@ -269,14 +281,13 @@ def remove_session_quiz(*,
                         current_user: CurrentUserDep,
                         ) -> Any:
     gamesession = crud.get_active_gamesession_by_user(db_session=db_session, user_id=current_user.id)
-    is_deleted = crud.delete_gamesession(db_session=db_session, gamesession_id=gamesession.id, user_id=current_user.id)
-    if is_deleted:
-        return {"message": "Quiz removed, session set to IDLE"}
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No gamesession or can't delete"
-        )
+    crud.update_gamesession_quiz(
+        db_session=db_session,
+        user_id=current_user.id,
+        quiz_id=None,
+        gamesession_id=gamesession.id
+    )
+    return {"message": "Quiz removed, session set to IDLE"}
 
 
 @router.post("/progress")

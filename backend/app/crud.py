@@ -419,7 +419,10 @@ def update_gamesession_quiz(*,
         gamesession_id=gamesession_id
     )
     if not gamesession:
-        return None
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Game session not found or access denied"
+        )
 
     if quiz_id:
         quiz = get_quiz_by_id(
@@ -434,6 +437,7 @@ def update_gamesession_quiz(*,
             )
 
     gamesession.quiz_id = quiz_id
+    gamesession.status = GameSessionStatusEnum.IDLE
     db_session.add(gamesession)
     db_session.commit()
     db_session.refresh(gamesession)

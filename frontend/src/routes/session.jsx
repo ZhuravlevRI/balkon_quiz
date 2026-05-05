@@ -425,6 +425,7 @@ function RouteComponent() {
                                 {/* </div> */}
                                 <div className="flex flex-col text-center gap-5 justify-center">
                                     <UserPanel user={{username: "Текщий игрок", score: 0}} index={1}/>
+                                        {user && (
                                     <div className="flex flex-row items-center justify-center card bg-base-200 p-3 gap-3">
                                         <button className="btn btn-neutral"
                                             onClick={() => {
@@ -436,6 +437,7 @@ function RouteComponent() {
                                             onClick={() => postSessionProgressMutation.mutate()}
                                         >Следующий вопрос</button>
                                     </div>
+                                        )}
                                 </div>
                                 <div className="lg:max-h-full flex flex-col ">
                                     <div className="flex flex-col card border rounded-box border-base-200 overflow-y-scroll mx-2">
@@ -504,6 +506,7 @@ function RouteComponent() {
                                     </div>
                                 </div>
                                         <div className="flex justify-center">
+                                            {user && (
                                             <div className="flex flex-row items-center justify-center card bg-base-200 p-3 gap-3">
                                                 <button className="btn btn-neutral"
                                                     onClick={() => {
@@ -512,6 +515,7 @@ function RouteComponent() {
                                                         postSessionProgressMutation.mutate()
                                                     }}>Завершить квиз</button>
                                             </div>
+                                            )}
                                         </div>
                             </div>
                         </div>

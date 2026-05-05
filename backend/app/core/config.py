@@ -79,7 +79,7 @@ class Settings(BaseSettings):
                 warnings.warn(message, stacklevel=2)
             else:
                 raise ValueError(message)
-        
+
         if self.POSTGRES_PASSWORD == "changethis":
             message = (
                 'The value of POSTGRES_PASSWORD is "changethis", '
@@ -89,7 +89,7 @@ class Settings(BaseSettings):
                 warnings.warn(message, stacklevel=2)
             else:
                 raise ValueError(message)
-        
+
         return self
 
 

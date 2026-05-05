@@ -578,12 +578,12 @@ def delete_player(*,
 
 def kick_player(*,
                 db_session: DBSession,
-                session_code: str,
+                code: str,
                 player_id: uuid.UUID
                 ) -> bool:
     gamesession = get_gamesession_by_code(
         db_session=db_session,
-        code=session_code
+        code=code
     )
     if not gamesession:
         return False

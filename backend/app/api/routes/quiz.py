@@ -7,12 +7,11 @@ from app.models import (
     Quiz,
     QuizCreate,
     QuizUpdate,
-    QuizBase,
     QuizWithQuestions,
     QuizResponse,
 )
 from app.api.deps import (
-    SessionDep,
+    DBSessionDep,
     CurrentUserDep,
 )
 
@@ -20,41 +19,39 @@ from app.api.deps import (
 router = APIRouter(prefix="/quiz", tags=["quiz"])
 
 
-@router.post(
-    "/create",
-    response_model=QuizCreate
-)
-def create_quiz(*, session: SessionDep, current_user: CurrentUserDep) -> Any:
-    """
-    Create quiz
-    return QuizCreate with id
-    """
-    new_quiz = crud.create_quiz(session=session, user_id=current_user.id)
+@router.post("/create", response_model=QuizCreate)
+def create_quiz(*,
+                db_session: DBSessionDep,
+                current_user: CurrentUserDep
+                ) -> Any:
+    new_quiz = crud.create_quiz(
+        db_session=db_session,
+        user_id=current_user.id
+    )
     return QuizCreate(id=new_quiz.id)
 
 
-@router.get(
-    "/list",
-    response_model=list[QuizResponse]
-)
-def list_quiz(*, session: SessionDep, current_user: CurrentUserDep, page: int = 0) -> Any:
-    """
-    List quiz with pagination
-    """
-    quizzes = crud.get_quiz_list(session=session, user_id=current_user.id, page=page)
+@router.get("/list", response_model=list[QuizResponse])
+def list_quiz(*,
+              db_session: DBSessionDep,
+              current_user: CurrentUserDep,
+              page: int = 0
+              ) -> Any:
+    quizzes = crud.get_quiz_list(
+        db_session=db_session,
+        user_id=current_user.id,
+        page=page
+    )
     return quizzes
 
 
 @router.get("/{quiz_id}", response_model=QuizWithQuestions)
-def get_quiz(
-    quiz_id: uuid.UUID,
-    session: SessionDep,
-    current_user: CurrentUserDep
-):
-    """
-    Get Quiz
-    """
-    quiz = crud.get_quiz_by_id(session=session, user_id=current_user.id, quiz_id=quiz_id)
+def get_quiz(*,
+             db_session: DBSessionDep,
+             quiz_id: uuid.UUID,
+             current_user: CurrentUserDep
+             ) -> Any:
+    quiz = crud.get_quiz_by_id(db_session=db_session, user_id=current_user.id, quiz_id=quiz_id)
     if not quiz:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -64,17 +61,14 @@ def get_quiz(
 
 
 @router.put("/{quiz_id}", response_model=Quiz)
-def update_quiz(
-    quiz_id: uuid.UUID,
-    quiz_in: QuizUpdate,
-    session: SessionDep,
-    current_user: CurrentUserDep
-):
-    """
-    Update Quiz
-    """
+def update_quiz(*,
+                quiz_id: uuid.UUID,
+                quiz_in: QuizUpdate,
+                db_session: DBSessionDep,
+                current_user: CurrentUserDep
+                ) -> Any:
     quiz = crud.update_quiz(
-        session=session,
+        db_session=db_session,
         quiz_id=quiz_id,
         user_id=current_user.id,
         quiz_in=quiz_in,
@@ -88,12 +82,12 @@ def update_quiz(
 
 
 @router.delete("/{quiz_id}")
-def delete_quiz(
-    quiz_id: uuid.UUID,
-    session: SessionDep,
-    current_user: CurrentUserDep
-):
-    success = crud.delete_quiz(session=session, quiz_id=quiz_id, user_id=current_user.id)
+def delete_quiz(*,
+                quiz_id: uuid.UUID,
+                db_session: DBSessionDep,
+                current_user: CurrentUserDep
+                ) -> Any:
+    success = crud.delete_quiz(db_session=db_session, quiz_id=quiz_id, user_id=current_user.id)
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

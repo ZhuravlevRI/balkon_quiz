@@ -1,13 +1,18 @@
+# TODO make
+
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Optional
 
-from sqlalchemy import JSON, Column, DateTime
+from sqlalchemy import DateTime
 from sqlmodel import Field, Relationship, SQLModel
+
+from app.enums import GameSessionStatusEnum
 
 
 def get_datetime_utc() -> datetime:
     return datetime.now(timezone.utc)
+
+# ================ User ===================
 
 
 class UserBase(SQLModel):
@@ -36,12 +41,20 @@ class User(UserBase, table=True):
 
     quizzes_created: list["Quiz"] = Relationship(
         back_populates="created_by",
-        sa_relationship_kwargs={"lazy": "dynamic"})
+        sa_relationship_kwargs={"lazy": "dynamic"},
+    )
+
+    gamesession_created: "GameSession" = Relationship(
+        back_populates="created_by",
+        sa_relationship_kwargs={"uselist": False},
+    )
 
 
 class UserPublic(UserBase):
     id: uuid.UUID
     created_at: datetime | None = None
+
+# ============== Question =================
 
 
 class QuestionBase(SQLModel):
@@ -83,6 +96,8 @@ class Question(QuestionBase, table=True):
     quiz_id: uuid.UUID = Field(foreign_key="quizzes.id", ondelete="CASCADE")
     order: int = Field(ge=0)
     quiz: "Quiz" = Relationship(back_populates="questions")
+
+# ================ Quiz ===================
 
 
 class QuizBase(SQLModel):
@@ -135,6 +150,72 @@ class Quiz(QuizBase, table=True):
     )
 
     created_by: User | None = Relationship(back_populates="quizzes_created")
+
+# ============= GameSession ================
+
+
+class GameSessionBase(SQLModel):
+    code: str = Field(min_length=6, max_length=6)
+    status: GameSessionStatusEnum
+    question_number: int = Field(default=0, ge=0)
+
+
+class GameSessionCreate(SQLModel):
+    id: uuid.UUID
+
+
+class GameSession(GameSessionBase, table=True):
+    __tablename__ = "sessions"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+
+    quiz_id: uuid.UUID | None = Field(default=None, foreign_key="quizzes.id")
+
+    players: list["Player"] = Relationship(back_populates="current_gamesession")
+
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),
+    )
+
+    created_by_id: uuid.UUID | None = Field(
+        default=None,
+        foreign_key="users.id",
+        ondelete="SET NULL",
+        unique=True,
+    )
+
+    created_by: User | None = Relationship(back_populates="gamesession_created")
+
+# ================ Player ==================
+
+
+class PlayerBase(SQLModel):
+    username: str = Field(unique=True, index=True, max_length=50)
+
+
+class Player(PlayerBase, table=True):
+    __tablename__ = "players"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+
+    session_id: uuid.UUID = Field(foreign_key="sessions.id")
+
+    current_gamesession: "GameSession" = Relationship(
+        back_populates="players",
+    )
+
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),
+    )
+
+
+class PlayerPublic(PlayerBase):
+    id: uuid.UUID
+    created_at: datetime | None = None
+
+# ================ Other ===================
 
 
 class Message(SQLModel):

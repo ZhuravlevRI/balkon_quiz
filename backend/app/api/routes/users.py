@@ -7,8 +7,8 @@ from app.core.config import settings
 from app.core import security
 from app import crud
 from app.api.deps import (
+    DBSessionDep,
     CurrentUserDep,
-    SessionDep,
 )
 from app.models import (
     UserRegister,
@@ -20,36 +20,32 @@ from app.models import (
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.post(
-    "/singin", response_model=UserPublic
-)
-def create_user(*, session: SessionDep, user_in: UserRegister) -> Any:
-    """
-    Register user
-    """
-    user = crud.get_user_by_name(session=session, username=user_in.username)
+@router.post("/singin", response_model=UserPublic)
+def create_user(*,
+                db_session: DBSessionDep,
+                user_in: UserRegister
+                ) -> Any:
+    user = crud.get_user_by_name(db_session=db_session, username=user_in.username)
     if user:
         raise HTTPException(
             status_code=400,
             detail=f'User with username "{user_in.username}" already exists',
         )
 
-    user = crud.create_user(session=session, user_create=user_in)
+    user = crud.create_user(db_session=db_session, user_create=user_in)
     return user
 
 
 @router.post("/login", response_model=AuthResponse)
-def login_user(
-    *,
-    session: SessionDep,
-    user_in: UserRegister,
-    response: Response,
-) -> Any:
-    """
-    Login
-    """
+def login_user(*,
+               db_session: DBSessionDep,
+               user_in: UserRegister,
+               response: Response,
+               ) -> Any:
     user = crud.authenticate(
-        session=session, username=user_in.username, password=user_in.password
+        db_session=db_session,
+        username=user_in.username,
+        password=user_in.password,
     )
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
@@ -57,7 +53,9 @@ def login_user(
         raise HTTPException(status_code=400, detail="Inactive user")
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     token = security.create_access_token(
-        user.id, expires_delta=access_token_expires
+        subject=user.id,
+        is_user=True,
+        expires_delta=access_token_expires,
     )
 
     response.set_cookie(
@@ -73,14 +71,13 @@ def login_user(
 
 
 @router.post("/logout")
-def user_logout(
-    response: Response,
-    session: SessionDep,
-) -> Any:
+def user_logout(*,
+                response: Response,
+                ) -> Any:
 
     response.set_cookie(
         key="access_token",
-        value="( . Y . ) <-- BOOBS",  # why are you reading this?
+        value="",
         httponly=True,  # no java access
         secure=False,  # set True in HTTPS prod
         samesite="strict",
@@ -91,8 +88,7 @@ def user_logout(
 
 
 @router.get("/me", response_model=UserPublic)
-def read_user_me(*, current_user: CurrentUserDep) -> Any:
-    """
-    Get current user.
-    """
+def read_user_me(*,
+                 current_user: CurrentUserDep
+                 ) -> Any:
     return current_user

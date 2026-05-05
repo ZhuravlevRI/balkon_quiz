@@ -9,9 +9,9 @@ engine = create_engine(
 )
 
 
-def get_session() -> Generator[Session, None, None]:
-    with Session(engine) as session:
-        yield session
+def get_db_session() -> Generator[Session, None, None]:
+    with Session(engine) as db_session:
+        yield db_session
 
 
 def init_db() -> None:

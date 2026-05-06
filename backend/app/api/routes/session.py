@@ -10,11 +10,13 @@ from app.core import security
 from app.core.config import settings
 from app.models import (
     GameSessionCreate,
+    Player,
 )
 from app.api.deps import (
     DBSessionDep,
     CurrentUserDep,
     OptionalCurrentUserDep,
+    CurrentPlayerDep,
     OptionalCurrentPlayerDep,
 )
 from app.enums import GameSessionStatusEnum
@@ -190,6 +192,24 @@ def get_players_list(*,
         }
         for player in players
     ]
+
+
+@router.get("/player/me")
+def get_player_me(*,
+                  db_session: DBSessionDep,
+                  current_player: CurrentPlayerDep,
+                  ) -> Player:
+    player = crud.get_player_by_id(
+        db_session=db_session,
+        player_id=current_player.id
+    )
+    if not player:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Player with id {current_player.id} not found"
+        )
+
+    return player
 
 
 @router.post("/player/{player_id}/kick")

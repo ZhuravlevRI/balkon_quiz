@@ -212,6 +212,29 @@ def get_player_me(*,
     return player
 
 
+@router.delete("/player/leave")
+def leave_as_player(*,
+                    db_session: DBSessionDep,
+                    current_player: CurrentPlayerDep,
+                    ) -> Player:
+    player = crud.get_player_by_id(
+        db_session=db_session,
+        player_id=current_player.id
+    )
+    if not player:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Player with id {current_player.id} not found"
+        )
+
+    crud.kick_player(
+        db_session=db_session,
+        code=player.current_gamesession.code,
+        player_id=current_player.id
+    )
+    return {"detail": "player leave success"}
+
+
 @router.post("/player/{player_id}/kick")
 def kick_player(*,
                 db_session: DBSessionDep,

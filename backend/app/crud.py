@@ -18,6 +18,7 @@ from app.models import (
     QuestionCreate,
     GameSession,
     Player,
+    AnswerValidationResult,
 )
 from app.enums import GameSessionStatusEnum
 
@@ -608,3 +609,50 @@ def get_player_count(*,
         select(func.count()).where(Player.session_id == session_id)
     ).one()
     return result or 0
+
+
+def set_player_chosen_answer(*,
+                             db_session: DBSession,
+                             player_id: uuid.UUID,
+                             answer_index: int,
+                             ) -> bool:
+    player = get_player_by_id(db_session=db_session, player_id=player_id)
+    if not player:
+        return False
+    player.chosen_answer = answer_index
+    db_session.add(player)
+    db_session.commit()
+    return True
+
+
+def reset_all_players_chosen_answers(*,
+                                     db_session: DBSession,
+                                     session_id: uuid.UUID,
+                                     ) -> None:
+    players = db_session.exec(
+        select(Player).where(Player.session_id == session_id)
+    ).all()
+    for p in players:
+        p.chosen_answer = None
+        db_session.add(p)
+    db_session.commit()
+
+
+def add_points_for_current_question(*,
+                                    db_session: DBSession,
+                                    session_id: uuid.UUID,
+                                    correct_answer_index: int,
+                                    points_per_correct: int = 100,
+                                    ) -> AnswerValidationResult:
+    players = db_session.exec(
+        select(Player).where(Player.session_id == session_id)
+    ).all()
+    res = AnswerValidationResult()
+    for p in players:
+        if p.chosen_answer == correct_answer_index:
+            p.score += points_per_correct
+            res.correct_answers += 1
+            db_session.add(p)
+        res.all_answers += 1
+    db_session.commit()
+    return res

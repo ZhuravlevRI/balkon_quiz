@@ -199,6 +199,9 @@ class Player(PlayerBase, table=True):
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
 
+    score: int = Field(default=0, ge=0)
+    chosen_answer: int | None = Field(default=None, ge=0, le=3)
+
     session_id: uuid.UUID = Field(foreign_key="sessions.id")
 
     current_gamesession: "GameSession" = Relationship(
@@ -216,6 +219,15 @@ class PlayerPublic(PlayerBase):
     created_at: datetime | None = None
 
 # ================ Other ===================
+
+
+class AnswerSubmit(SQLModel):
+    answer: int = Field(ge=0, le=3)
+
+
+class AnswerValidationResult(SQLModel):
+    correct_answers: int = 0
+    all_answers: int = 0
 
 
 class Message(SQLModel):

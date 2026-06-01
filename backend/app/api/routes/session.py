@@ -156,6 +156,8 @@ def delete_gamesession(*,
                        current_user: CurrentUserDep
                        ):
     gamesession = crud.get_user_by_id(db_session=db_session, user_id=current_user.id).gamesession_created
+    for player in gamesession.players:
+        leave_as_player(db_session=db_session, current_player=player)
 
     success = crud.delete_gamesession(
         db_session=db_session,

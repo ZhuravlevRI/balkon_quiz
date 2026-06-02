@@ -105,11 +105,13 @@ def get_session_status(*,
 
     player_score = 0
     chosen_answer = None
+    player_name = ""
     if player_id:
         player = crud.get_player_by_id(db_session=db_session, player_id=player_id)
         if player:
             player_score = player.score
             chosen_answer = player.chosen_answer
+            player_name = player.username
 
     response_data = {
         "code": gamesession.code,
@@ -120,6 +122,7 @@ def get_session_status(*,
         "total_questions": len(quiz.questions) if quiz else 0,
         "quiz_id": gamesession.quiz_id,
         "chosen_answer": chosen_answer,
+        "name": player_name
     }
 
     if gamesession.status == GameSessionStatusEnum.QUESTION:
@@ -225,12 +228,13 @@ def get_players_list(*,
         gamesession_id=gamesession.id,
         user_id=gamesession.created_by_id
     )
+    players = sorted(players, key=lambda x: -x.score)
 
     return [
         {
             "id": player.id,
             "username": player.username,
-            "score": 0,
+            "score": player.score,
             "joined_at": player.created_at
         }
         for player in players
@@ -253,6 +257,15 @@ def get_player_me(*,
         )
 
     return player
+
+
+@router.get("/check/{code}")
+def get_check_session(*,
+                      db_session: DBSessionDep,
+                      code: str
+                      ) -> bool:
+    gamesession = crud.get_gamesession_by_code(db_session=db_session, code=code)
+    return bool(gamesession)
 
 
 @router.post("/player/choose_answer")
@@ -328,7 +341,7 @@ def kick_player(*,
 
     success = crud.kick_player(
         db_session=db_session,
-        session_code=gamesession.code,
+        code=gamesession.code,
         player_id=player_id
     )
 
@@ -451,6 +464,10 @@ def session_progress(*,
 
     if current_status == GameSessionStatusEnum.IDLE:
         crud.reset_all_players_chosen_answers(
+            db_session=db_session,
+            session_id=gamesession.id
+        )
+        crud.reset_all_players_score(
             db_session=db_session,
             session_id=gamesession.id
         )

@@ -9,6 +9,7 @@ import {
 import { 
     postJoinSession,
     getSessionStatus,
+    getCheckSession,
 } from "@/api.js"
 
 import toast from 'react-hot-toast';
@@ -29,6 +30,18 @@ function Index() {
         onError: handleError.bind(toast.error),
         onSuccess: () => {
             navigate({ to: "/session" })
+        }
+    })
+
+    const getCheckMutation = useMutation({
+        mutationFn: (data) => getCheckSession(data),
+        onError: handleError.bind(toast.error),
+        onSuccess: (data) => {
+            if(data) {
+                document.getElementById('modal').showModal()
+            } else {
+                toast.error("Неверный код сессии")
+            }
         }
     })
 
@@ -54,7 +67,7 @@ function Index() {
                             value={roomCode} onChange={e => setRoomCode(e.target.value)}
                         />
                         <button className="btn btn-primary"
-                            onClick={()=>document.getElementById('modal').showModal()}
+                            onClick={() => getCheckMutation.mutate(roomCode)}
                         >Присоединиться</button>
                     </div>
                 </div>

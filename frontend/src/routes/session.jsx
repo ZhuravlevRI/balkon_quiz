@@ -23,7 +23,8 @@ import {
     getSessionPlayerList,
     postSessionPlayerKick,
     postSessionProgress,
-    getImage
+    getImage,
+    postChooseAnswer,
 } from "@/api.js"
 
 import toast from 'react-hot-toast';
@@ -82,6 +83,7 @@ function RouteComponent() {
         retry: false
     })
 
+
     const {
         data: quizPoll,
         status: pollStatus,
@@ -92,11 +94,15 @@ function RouteComponent() {
         refetchInterval: 2_000, // every 5 seconds
         retry: false
     })
-    console.log(quizPoll)
+    // console.log(quizPoll)
     // console.log(pollStatus)
 
     const [status, setStatus] = useAtom(statusAtom);
     const [pickedAnswer, setPickedAnswer] = useState(undefined);
+
+    const findUserIndex = () => {
+        return users.findIndex((item) => item.username === quizPoll.name)+1
+    };
 
     if(quizPoll) {
         if(quizPoll.status != "idle" && status == "idle") {
@@ -112,6 +118,14 @@ function RouteComponent() {
 
     const postCreateSessionMutation = useMutation({
         mutationFn: (data) => postCreateSession(),
+        onError: handleError.bind(toast.error),
+        onSuccess: () => {
+            refetchStatus()
+        }
+    })
+
+    const postChooseAnswerMutation = useMutation({
+        mutationFn: (data) => postChooseAnswer(data),
         onError: handleError.bind(toast.error),
         onSuccess: () => {
             refetchStatus()
@@ -190,6 +204,9 @@ function RouteComponent() {
 
     function pickAnswer(index) {
         setPickedAnswer(index)
+        if(!user) {
+            postChooseAnswerMutation.mutate({"answer": index})
+        }
     }
 
 
@@ -427,7 +444,9 @@ function RouteComponent() {
                                     {/* <h1 className="text-5xl">aontsehuaosnteu</h1> */}
                                 {/* </div> */}
                                 <div className="flex flex-col text-center gap-5 justify-center">
-                                    <UserPanel user={{username: "Текщий игрок", score: 0}} index={1}/>
+                                    {!user && (
+                                        <UserPanel user={{username: quizPoll.name, score: quizPoll.score}} index={findUserIndex()}/>
+                                    )}
                                         {user && (
                                     <div className="flex flex-row items-center justify-center card bg-base-200 p-3 gap-3">
                                         <button className="btn btn-neutral"
@@ -445,7 +464,7 @@ function RouteComponent() {
                                 <div className="lg:max-h-full flex flex-col ">
                                     <div className="flex flex-col card border rounded-box border-base-200 overflow-y-scroll mx-2">
                                         <div className="flex flex-col gap-3 px-4 lg:px-8 card-body">
-                                            {users.map((e, i) => <UserPanel user={e} key={i} index={i+1} admin={!!user}/>)}
+                                            {users.map((e, i) => <UserPanel user={e} key={i} index={i+1} admin={!!user} kick={() => postSessionPlayerKickMutation.mutate(e)}/>)}
                                         </div>
                                     </div>
                                 </div>
@@ -461,51 +480,59 @@ function RouteComponent() {
                         </div>
                         <div className="flex justify-center">
                                     <div className="grow flex max-w-3xl justify-center gap-5 items-end h-75 md:h-125 mx-3">
+                                        {users.length > 1 && (
                                         <div className="flex flex-col gap-3 h-17/20 w-1/3">
-                                            <h1 className="text-md md:text-2xl">Игрок 1</h1>
+                                            <h1 className="text-md md:text-2xl">{users[1].username}</h1>
                                             <div className="grow flex flex-col bg-slate-400 rounded-box justify-between items-center p-3 pb-6">
                                                 <div className="text-3xl md:text-5xl">
-                                                    300
+                                                    {users[1].score}
                                                 </div>
                                                 <div className="text-3xl md:text-5xl rounded-full bg-slate-500 border-0 badge p-6 md:p-8">
                                                     2
                                                 </div>
                                             </div>
                                         </div>
+                                        )}
+                                        {users.length > 0 && (
                                         <div className="flex flex-col gap-3 h-full w-1/3">
-                                            <h1 className="text-md md:text-2xl">Игрок 2</h1>
+                                            <h1 className="text-md md:text-2xl">{users[0].username}</h1>
                                             <div className="grow flex flex-col bg-yellow-500 rounded-box justify-between items-center p-3 pb-6">
                                                 <div className="text-3xl md:text-5xl">
-                                                    500
+                                                    {users[0].score}
                                                 </div>
                                                 <div className="text-3xl md:text-5xl rounded-full bg-yellow-600 border-0 badge p-6 md:p-8">
                                                     1
                                                 </div>
                                             </div>
                                         </div>
+                                        )}
+                                        {users.length > 2 && (
                                         <div className="flex flex-col gap-3 h-7/10 w-1/3">
-                                            <h1 className="text-md md:text-2xl">Игрок 3</h1>
+                                            <h1 className="text-md md:text-2xl">{users[2].username}</h1>
                                             <div className="grow flex flex-col bg-yellow-700 rounded-box justify-between items-center p-3 pb-6">
                                                 <div className="text-3xl md:text-5xl">
-                                                    200
+                                                    {users[2].score}
                                                 </div>
                                                 <div className="text-3xl md:text-5xl rounded-full bg-yellow-800 border-0 badge p-6 md:p-8">
                                                     3
                                                 </div>
                                             </div>
                                         </div>
+                                        )}
                                     </div>
                         </div>
                         <div className="flex grow justify-center">
+                            {!user && (
                             <div className="flex flex-col text-center gap-5 justify-center">
-                                <UserPanel user={{username: "Текущий игрок", score: 0}} index={1}/>
+                                    <UserPanel user={{username: quizPoll.name, score: quizPoll.score}} index={findUserIndex()}/>
                             </div>
+                            )}
                         </div>
                         <div className="flex grow justify-center">
                             <div className="flex flex-col gap-5">
                                 <div className="flex flex-col card border rounded-box border-base-200 overflow-y-scroll mx-2">
                                     <div className="flex flex-col gap-3 px-4 lg:px-8 card-body">
-                                        {users.map((e, i) => <UserPanel user={e} key={i} index={i+1} admin={!!user}/>)}
+                                        {users.map((e, i) => <UserPanel user={e} key={i} index={i+1} admin={!!user} kick={() => postSessionPlayerKickMutation.mutate(e)}/>)}
                                     </div>
                                 </div>
                                         <div className="flex justify-center">

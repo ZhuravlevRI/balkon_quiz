@@ -638,6 +638,19 @@ def reset_all_players_chosen_answers(*,
     db_session.commit()
 
 
+def reset_all_players_score(*,
+                            db_session: DBSession,
+                            session_id: uuid.UUID,
+                            ) -> None:
+    players = db_session.exec(
+        select(Player).where(Player.session_id == session_id)
+    ).all()
+    for p in players:
+        p.score = 0
+        db_session.add(p)
+    db_session.commit()
+
+
 def add_points_for_current_question(*,
                                     db_session: DBSession,
                                     session_id: uuid.UUID,

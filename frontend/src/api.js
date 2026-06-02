@@ -127,3 +127,13 @@ export async function postUpload(files) {
     const response = await axios.post(`/images/upload`, data)
     return response.data
 }
+
+export async function postChooseAnswer(data) {
+    const response = await axios.post(`session/player/choose_answer`, data)
+    return response.data
+}
+
+export async function getCheckSession(data) {
+    const response = await axios.get(`session/check/${data}`)
+    return response.data
+}

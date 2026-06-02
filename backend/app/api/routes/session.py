@@ -10,11 +10,14 @@ from app.core import security
 from app.core.config import settings
 from app.models import (
     GameSessionCreate,
+    Player,
+    AnswerSubmit,
 )
 from app.api.deps import (
     DBSessionDep,
     CurrentUserDep,
     OptionalCurrentUserDep,
+    CurrentPlayerDep,
     OptionalCurrentPlayerDep,
 )
 from app.enums import GameSessionStatusEnum
@@ -72,6 +75,7 @@ def get_session_status(*,
                 db_session=db_session,
                 player_id=current_player.id)
             gamesession = player.current_gamesession
+            player_id = current_player.id
         except (ValueError, IndexError):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -98,9 +102,14 @@ def get_session_status(*,
         db_session=db_session,
         session_id=gamesession.id
     )
+
     player_score = 0
+    chosen_answer = None
     if player_id:
-        pass
+        player = crud.get_player_by_id(db_session=db_session, player_id=player_id)
+        if player:
+            player_score = player.score
+            chosen_answer = player.chosen_answer
 
     response_data = {
         "code": gamesession.code,
@@ -110,7 +119,9 @@ def get_session_status(*,
         "score": player_score,
         "total_questions": len(quiz.questions) if quiz else 0,
         "quiz_id": gamesession.quiz_id,
+        "chosen_answer": chosen_answer,
     }
+
     if gamesession.status == GameSessionStatusEnum.QUESTION:
         if quiz and gamesession.question_number < len(quiz.questions):
             question = quiz.questions[gamesession.question_number]
@@ -153,7 +164,20 @@ def delete_gamesession(*,
                        db_session: DBSessionDep,
                        current_user: CurrentUserDep
                        ):
-    gamesession = crud.get_user_by_id(db_session=db_session, user_id=current_user.id).gamesession_created
+    user = crud.get_user_by_id(db_session=db_session, user_id=current_user.id)
+    if not user or not user.gamesession_created:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No active session found"
+        )
+    gamesession = user.gamesession_created
+
+    for player in gamesession.players:
+        crud.kick_player(
+            db_session=db_session,
+            code=gamesession.code,
+            player_id=player.id
+        )
 
     success = crud.delete_gamesession(
         db_session=db_session,
@@ -213,11 +237,92 @@ def get_players_list(*,
     ]
 
 
+@router.get("/player/me")
+def get_player_me(*,
+                  db_session: DBSessionDep,
+                  current_player: CurrentPlayerDep,
+                  ) -> Player:
+    player = crud.get_player_by_id(
+        db_session=db_session,
+        player_id=current_player.id
+    )
+    if not player:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Player with id {current_player.id} not found"
+        )
+
+    return player
+
+
+@router.post("/player/choose_answer")
+def choose_answer(*,
+                  db_session: DBSessionDep,
+                  current_player: CurrentPlayerDep,
+                  answer: AnswerSubmit,
+                  ) -> dict:
+    player = crud.get_player_by_id(db_session=db_session, player_id=current_player.id)
+    if not player:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Player not found"
+        )
+
+    gamesession = player.current_gamesession
+    if not gamesession:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Player not in a session"
+        )
+
+    if gamesession.status != GameSessionStatusEnum.QUESTION:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot change answer at this moment"
+        )
+
+    success = crud.set_player_chosen_answer(
+        db_session=db_session,
+        player_id=player.id,
+        answer_index=answer.answer,
+    )
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to set answer"
+        )
+
+    return {"message": "Answer updated", "chosen_answer": answer.answer}
+
+
+@router.delete("/player/leave")
+def leave_as_player(*,
+                    db_session: DBSessionDep,
+                    current_player: CurrentPlayerDep,
+                    ) -> Player:
+    player = crud.get_player_by_id(
+        db_session=db_session,
+        player_id=current_player.id
+    )
+    if not player:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Player with id {current_player.id} not found"
+        )
+
+    crud.kick_player(
+        db_session=db_session,
+        code=player.current_gamesession.code,
+        player_id=current_player.id
+    )
+    return {"detail": "player leave success"}
+
+
 @router.post("/player/{player_id}/kick")
 def kick_player(*,
                 db_session: DBSessionDep,
                 current_user: CurrentUserDep,
-                player_id: uuid.UUID
+                player_id: uuid.UUID,
                 ) -> Any:
     gamesession = crud.get_player_by_id(db_session=db_session, player_id=player_id).current_gamesession
 
@@ -345,21 +450,41 @@ def session_progress(*,
         )
 
     if current_status == GameSessionStatusEnum.IDLE:
+        crud.reset_all_players_chosen_answers(
+            db_session=db_session,
+            session_id=gamesession.id
+        )
         gamesession.status = GameSessionStatusEnum.QUESTION
         gamesession.question_number = 0
+
     elif current_status == GameSessionStatusEnum.QUESTION:
         gamesession.status = GameSessionStatusEnum.QUESTION_WITH_ANSWERS
+
     elif current_status == GameSessionStatusEnum.QUESTION_WITH_ANSWERS:
+        current_question = quiz.questions[current_question_num]
+        crud.add_points_for_current_question(
+            db_session=db_session,
+            session_id=gamesession.id,
+            correct_answer_index=current_question.correct,
+            points_per_correct=100
+        )
         gamesession.status = GameSessionStatusEnum.RANKING
+
     elif current_status == GameSessionStatusEnum.RANKING:
         if current_question_num + 1 < total_questions:
+            crud.reset_all_players_chosen_answers(
+                db_session=db_session,
+                session_id=gamesession.id
+            )
             gamesession.status = GameSessionStatusEnum.QUESTION
             gamesession.question_number += 1
         else:
             gamesession.status = GameSessionStatusEnum.LEADERBOARD
+
     elif current_status == GameSessionStatusEnum.LEADERBOARD:
         gamesession.status = GameSessionStatusEnum.IDLE
         gamesession.question_number = 0
+
     else:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

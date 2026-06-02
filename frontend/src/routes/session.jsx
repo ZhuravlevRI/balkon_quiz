@@ -362,7 +362,7 @@ function RouteComponent() {
                                     <div className="flex w-1/3 justify-center">
                                         <div className="text-center card card-sm bg-base-200 border border-base-300 my-3 p-1">
                                             <h1 className="text-2xl px-2 font-semibold">
-                                                {question.id}/10
+                                                {quizPoll.question_number+1}/{quizPoll.total_questions}
                                             </h1>
                                         </div>
                                     </div>

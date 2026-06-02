@@ -35,6 +35,10 @@ export async function getQuiz({ queryKey }) {
     return response.data
 }
 
+export function getImage(id) {
+    return `${API_BASE_URL}/images/${id}`
+}
+
 export async function postLogin(data) {
     const response = await axios.post('/users/login', data)
     return response.data
@@ -113,5 +117,13 @@ export async function postJoinSession(code, username) {
 
 export async function postSessionProgress() {
     const response = await axios.post(`/session/progress`)
+    return response.data
+}
+
+export async function postUpload(files) {
+    let data = new FormData()
+    data.append('file', files[0])
+
+    const response = await axios.post(`/images/upload`, data)
     return response.data
 }

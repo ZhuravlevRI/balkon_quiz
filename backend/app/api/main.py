@@ -5,7 +5,6 @@ from app.api.routes import (
     quiz,
     session,
     images,
-    questions,
 )
 from app.core.config import settings
 

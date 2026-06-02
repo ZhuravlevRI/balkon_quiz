@@ -23,6 +23,7 @@ import {
     getSessionPlayerList,
     postSessionPlayerKick,
     postSessionProgress,
+    getImage
 } from "@/api.js"
 
 import toast from 'react-hot-toast';
@@ -229,7 +230,7 @@ function RouteComponent() {
                                 </h1>
                             </div>
                             <br/>
-                            <div className="flex justify-center gap-5">
+                            <div className="flex justify-center gap-3">
                                 {(user) ? (
                                     <>
                                         <button className="btn btn-neutral"
@@ -368,7 +369,9 @@ function RouteComponent() {
                                 </div>
                             </div>
                             <div className="flex justify-center max-w h-100">
-                                {/* <img className="object-contain" src="dummyquestion.jpg"/> */}
+                                {quizPoll.question.img && (
+                                    <img className="object-contain" src={getImage(quizPoll.question.img)}/>
+                                )}
                             </div>
                             <div className="flex flex-col gap-4">
                                 <div className="flex flex-wrap gap-3 justify-center">

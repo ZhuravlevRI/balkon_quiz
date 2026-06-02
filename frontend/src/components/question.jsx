@@ -93,11 +93,11 @@ export function Question({index, data, setQuestionData, removeQuestion, insertQu
                                     className="btn btn-neutral"
                                     type="file"
                                     accept="image/png, image/jpeg"
-                                    id={"index"+index}
+                                    id={"index"+data.id}
                                     style={{ display: "none" }}
                                     onChange={handleFileChange}
                                 />
-                                <label htmlFor={"index"+index} className="btn btn-neutral">
+                                <label htmlFor={"index"+data.id} className="btn btn-neutral">
                                     Добавить картинку
                                 </label>
                                 {data.img && (
@@ -110,7 +110,7 @@ export function Question({index, data, setQuestionData, removeQuestion, insertQu
                             </div>
                             {data.img && (
                                 <div>
-                                    <img className="object-contain" src={getImage(data.img)}/>
+                                    <img className="object-contain w-50" src={getImage(data.img)}/>
                                 </div>
                             )}
                             <div className="divider my-0"></div>
